@@ -1,7 +1,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "parameters.h"
+#include "api.h"
 
 /**
  * Prints the help
@@ -20,9 +20,9 @@ void print_help()
     printf("path to the carrier BMP file.\n");
 }
 
-void parse_options(int argc, char *argv[])
+Options * parse_options(int argc, char *argv[])
 {
-    options parameters = malloc(sizeof(*parameters));
+    Options * parameters = malloc(sizeof(Options));
 
     int c;
 
@@ -51,54 +51,62 @@ void parse_options(int argc, char *argv[])
 
         switch (c)
         {
-        case 0:
-            /* If this option set a flag, do nothing else now. */
-            if (long_options[option_index].flag != 0)
+            case 0:
+                /* If this option set a flag, do nothing else now. */
+                if (long_options[option_index].flag != 0)
+                    break;
+                printf("option %s", long_options[option_index].name);
+                if (optarg)
+                    printf(" with arg %s", optarg);
+                printf("\n");
                 break;
-            printf("option %s", long_options[option_index].name);
-            if (optarg)
-                printf(" with arg %s", optarg);
-            printf("\n");
-            break;
-        /* Print help and quit */
-        case 'h':
-            print_help();
-            exit(0);
-            break;
-        case 'i':
-            parameters->input_file = optarg;
-            break;
-        case 'o':
-            parameters->output_file = optarg;
-            break;
-        case 'p':
-            parameters->carrier_file = optarg;
-            break;
-        case '?':
-            break;
-        default:
-            abort();
+            /* Print help and quit */
+            case 'h':
+                print_help();
+                exit(0);
+                break;
+            case 'i':
+                parameters->input_file_name = optarg;
+                break;
+            case 'o':
+                parameters->output_file_name = optarg;
+                break;
+            case 'p':
+                parameters->carrier_file_name = optarg;
+                break;
+            case '?':
+                break;
+            default:
+                abort();
         }
     }
 
-    if (parameters->input_file == NULL)
+    if (parameters->input_file_name == NULL)
     {
         fprintf(stderr, "You must specify an input file.\n");
         exit(1);
     }
 
-    if (parameters->carrier_file == NULL)
+    if (parameters->carrier_file_name == NULL)
     {
         fprintf(stderr, "You must specify a carrier file.\n");
         exit(1);
     }
 
+    if (parameters->output_file_name == NULL)
+    {
+        fprintf(stderr, "You must specify an output file.\n");
+        exit(1);
+    }
+
     if (mode_flag)
     {
-        parameters->mode = extract;
+        parameters->mode = EXTRACT;
     }
     else
     {
-        parameters->mode = embed;
+        parameters->mode = EMBED;
     }
+
+    return parameters;
 }
