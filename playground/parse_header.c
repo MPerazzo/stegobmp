@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
 
   if ((fd = fopen("example.bmp", "rb")) == NULL)
   {
-    printf("Failed to open file.\n");
+    fprintf(stderr, "Failed to open file.\n");
     return -1;
   }
 
@@ -53,11 +53,11 @@ int main(int argc, char const *argv[])
 
   if (compression == 0)
   {
-    printf("File has compression.\n");
+    printf("File does not have compression.\n");
   }
   else
   {
-    printf("File does not has compression\n");
+    printf("File has compression.\n");
   }
 
   fclose(fd);
