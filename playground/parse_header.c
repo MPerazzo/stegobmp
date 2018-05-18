@@ -21,34 +21,35 @@
 #define COMPRESSION_HEADER_OFFSET 0x1E
 #define COMPRESSION_HEADER_SIZE 0x4
 
+#define BYTE 0x1
+
 int main(int argc, char const *argv[])
 {
-  FILE *f;
-  long sz;
+  FILE *fd;
 
-  if ((f = fopen("example.bmp", "rb")) == NULL)
+  if ((fd = fopen("example.bmp", "rb")) == NULL)
   {
     printf("Failed to open file.\n");
     return -1;
   }
 
-  fseek(f, WIDTH_HEADER_OFFSET, SEEK_SET);
+  fseek(fd, WIDTH_HEADER_OFFSET, SEEK_SET);
   u_int32_t width;
-  fread(&width, WIDTH_HEADER_SIZE, 1, f);
+  fread(&width, WIDTH_HEADER_SIZE, BYTE, fd);
 
-  fseek(f, HEIGHT_HEADER_OFFSET, SEEK_SET);
+  fseek(fd, HEIGHT_HEADER_OFFSET, SEEK_SET);
   u_int32_t height;
-  fread(&height, HEIGHT_HEADER_SIZE, 1, f);
+  fread(&height, HEIGHT_HEADER_SIZE, BYTE, fd);
 
-  fseek(f, BITS_PER_PIXEL_HEADER_OFFSET, SEEK_SET);
+  fseek(fd, BITS_PER_PIXEL_HEADER_OFFSET, SEEK_SET);
   u_int16_t bits_per_pixel;
-  fread(&bits_per_pixel, BITS_PER_PIXEL_HEADER_SIZE, 1, f);
+  fread(&bits_per_pixel, BITS_PER_PIXEL_HEADER_SIZE, BYTE, fd);
 
   printf("Size: %dx%d, Bits per pixel: %d\n", width, height, bits_per_pixel);
 
-  fseek(f, COMPRESSION_HEADER_OFFSET, SEEK_SET);
+  fseek(fd, COMPRESSION_HEADER_OFFSET, SEEK_SET);
   u_int32_t compression;
-  fread(&compression, COMPRESSION_HEADER_SIZE, 1, f);
+  fread(&compression, COMPRESSION_HEADER_SIZE, BYTE, fd);
 
   if (compression == 0)
   {
@@ -59,6 +60,6 @@ int main(int argc, char const *argv[])
     printf("File does not has compression\n");
   }
 
-  fclose(f);
+  fclose(fd);
   return 0;
 }
