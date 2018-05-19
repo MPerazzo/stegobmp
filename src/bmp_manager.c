@@ -5,35 +5,26 @@
 #include <stdlib.h>
 #include <math.h>
 
-BMPHeader *infer_header(char *filename)
+BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
 {
-  FILE *fd;
   BMPHeader *header = malloc(sizeof(BMPHeader));
 
-  if ((fd = fopen(filename, "rb")) == NULL)
+  if (header == NULL)
   {
     return NULL;
   }
 
-  fseek(fd, WIDTH_HEADER_OFFSET, SEEK_SET);
   u_int32_t width;
-  fread(&width, WIDTH_HEADER_SIZE, BYTE, fd);
-
-  fseek(fd, HEIGHT_HEADER_OFFSET, SEEK_SET);
   u_int32_t height;
-  fread(&height, HEIGHT_HEADER_SIZE, BYTE, fd);
-
-  fseek(fd, BITS_PER_PIXEL_HEADER_OFFSET, SEEK_SET);
   u_int16_t bits_per_pixel;
-  fread(&bits_per_pixel, BITS_PER_PIXEL_HEADER_SIZE, BYTE, fd);
-
-  fseek(fd, COMPRESSION_HEADER_OFFSET, SEEK_SET);
   u_int32_t compression;
-  fread(&compression, COMPRESSION_HEADER_SIZE, BYTE, fd);
-
-  fseek(fd, BODY_START_HEADER_OFFSET, SEEK_SET);
   u_int32_t offset;
-  fread(&offset, BODY_START_HEADER_SIZE, BYTE, fd);
+
+  memcpy(&width, byte_buffer->start + WIDTH_HEADER_OFFSET, WIDTH_HEADER_SIZE);
+  memcpy(&height, byte_buffer->start + HEIGHT_HEADER_OFFSET, HEIGHT_HEADER_SIZE);
+  memcpy(&bits_per_pixel, byte_buffer->start + BITS_PER_PIXEL_HEADER_OFFSET, BITS_PER_PIXEL_HEADER_SIZE);
+  memcpy(&compression, byte_buffer->start + COMPRESSION_HEADER_OFFSET, COMPRESSION_HEADER_SIZE);
+  memcpy(&offset, byte_buffer->start + BODY_START_HEADER_OFFSET, BODY_START_HEADER_SIZE);
 
   header->width = width;
   header->height = height;
@@ -41,8 +32,22 @@ BMPHeader *infer_header(char *filename)
   header->compression = compression;
   header->offset = offset;
 
-  fclose(fd);
   return header;
+}
+
+void write_header_to_bytebuffer(BMPHeader *header, ByteBuffer *byte_buffer)
+{
+  u_int32_t width = header->width;
+  u_int32_t height = header->height;
+  u_int16_t bits_per_pixel = header->bits_per_pixel;
+  u_int32_t compression = header->compression;
+  u_int32_t offset = header->offset;
+
+  memcpy(byte_buffer->start + WIDTH_HEADER_OFFSET, &width, WIDTH_HEADER_SIZE);
+  memcpy(byte_buffer->start + HEIGHT_HEADER_OFFSET, &height, HEIGHT_HEADER_SIZE);
+  memcpy(byte_buffer->start + BITS_PER_PIXEL_HEADER_OFFSET, &bits_per_pixel, BITS_PER_PIXEL_HEADER_SIZE);
+  memcpy(byte_buffer->start + COMPRESSION_HEADER_OFFSET, &compression, COMPRESSION_HEADER_SIZE);
+  memcpy(byte_buffer->start + BODY_START_HEADER_OFFSET, &offset, BODY_START_HEADER_SIZE);
 }
 
 int is_compressed(BMPHeader *header)
@@ -81,5 +86,30 @@ ByteBuffer *infer_body(char *filename, BMPHeader *header)
   fseek(fd, header->offset, SEEK_SET);
   fread(byte_buffer->start, byte_buffer->length, BYTE, fd);
 
+  return byte_buffer;
+}
+
+ByteBuffer *infer_header(char *filename)
+{
+  ByteBuffer *byte_buffer = malloc(sizeof(ByteBuffer));
+
+  FILE *fd;
+  if ((fd = fopen(filename, "rb")) == NULL)
+  {
+    return NULL;
+  }
+
+  fseek(fd, BODY_START_HEADER_OFFSET, SEEK_SET);
+  u_int32_t offset;
+  fread(&offset, BODY_START_HEADER_SIZE, BYTE, fd);
+
+  byte_buffer->length = offset;
+  byte_buffer->start = malloc(byte_buffer->length);
+
+  // Go to the beginning of the file
+  fseek(fd, 0, SEEK_SET);
+  fread(byte_buffer->start, 1, byte_buffer->length, fd);
+
+  fclose(fd);
   return byte_buffer;
 }
