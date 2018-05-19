@@ -13,6 +13,11 @@
 
 // Size of a byte
 #define BYTE 0x1
+
+/*
+ * Offsets & sizes (in bytes) of the BMP header
+ * where useful information can be found.
+ */
 #define WIDTH_HEADER_OFFSET 0x12
 #define WIDTH_HEADER_SIZE 0x4
 
@@ -26,10 +31,12 @@
 // Compression
 #define COMPRESSION_HEADER_OFFSET 0x1E
 #define COMPRESSION_HEADER_SIZE 0x4
-/*
- * Offsets & sizes (in bytes) of the BMP header
- * where useful information can be found.
- */
+
+#define BODY_START_HEADER_OFFSET 0x0A
+#define BODY_START_HEADER_SIZE 0x4
+
+// Size of a pixel in bytes
+#define PIXEL_SIZE 3
 
 /********************************
  *
@@ -64,6 +71,9 @@ typedef struct header_t
 
     // Has compression unless value is 0
     u_int32_t compression;
+
+    // The location of the start of the image information relative to the start of the file
+    u_int32_t offset;
 } BMPHeader;
 
 typedef struct pixel_t
@@ -72,6 +82,12 @@ typedef struct pixel_t
     u_int8_t blue;
     u_int8_t red;
 } Pixel;
+
+typedef struct byte_buffer_t
+{
+    u_int8_t *start;
+    int length;
+} ByteBuffer;
 
 /********************************
  *
@@ -87,5 +103,8 @@ BMPHeader *infer_header(char *filename);
 
 // Check wether a bmp file uses compression
 int is_compressed(BMPHeader *header);
+
+// Load BMP file body in memory
+ByteBuffer *infer_body(char *filename, BMPHeader *header);
 
 #endif
