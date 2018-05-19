@@ -24,8 +24,10 @@ Options * parse_options(int argc, char *argv[])
 {
     Options * parameters = malloc(sizeof(Options));
 
-    int c;
+    // TODO: Use calloc in previous statement
+    parameters->input_file_name = NULL;
 
+    int c;
     static int mode_flag;
 
     while (1)
