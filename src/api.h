@@ -98,13 +98,19 @@ typedef struct byte_buffer_t
 // Parse command line arguments
 Options *parse_options(int argc, char *argv[]);
 
-// Read relevant information from header
-BMPHeader *infer_header(char *filename);
+// Read relevant information from header byte array
+BMPHeader *parse_header_from_bytebuffer(ByteBuffer *filename);
 
 // Check wether a bmp file uses compression
 int is_compressed(BMPHeader *header);
 
 // Load BMP file body in memory
 ByteBuffer *infer_body(char *filename, BMPHeader *header);
+
+// Load BMP file header in memory
+ByteBuffer *infer_header(char *filename);
+
+// Inverse operation of infer_header
+void write_header_to_bytebuffer(BMPHeader *header, ByteBuffer *byte_buffer);
 
 #endif
