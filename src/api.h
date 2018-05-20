@@ -95,6 +95,19 @@ typedef struct pixel_node_t {
     struct pixel_node_t * next;
 } PixelNode;
 
+typedef struct input_file_t
+{
+    ByteBuffer *file;
+    u_int32_t size;
+    char *extension;
+} InputFile;
+
+typedef enum steg_t{
+    LSB1,
+    LSB4,
+    LSBE
+} Steg;
+
 /********************************
  *
  *  Function definitions
@@ -120,5 +133,11 @@ ByteBuffer *infer_header(char *filename);
 void write_header_to_bytebuffer(BMPHeader *header, ByteBuffer *byte_buffer);
 
 PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body);
+
+// Load input file in memory
+InputFile *load_file(char *filename);
+
+// Number of bits that the carrier can store
+u_int64_t carrier_max_storage(BMPHeader *header, Steg steg_algorithm);
 
 #endif

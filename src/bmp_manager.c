@@ -158,3 +158,14 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
 
   return first;
 }
+
+u_int64_t carrier_max_storage(BMPHeader *header, Steg steg_algorithm){
+
+  if (steg_algorithm == LSB1){
+    return header->width*header->height*PIXEL_SIZE;
+  }
+
+  if (steg_algorithm == LSB4){
+    return header->width*header->height*PIXEL_SIZE*4;
+  }
+}
