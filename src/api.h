@@ -89,6 +89,11 @@ typedef struct byte_buffer_t
     int length;
 } ByteBuffer;
 
+typedef struct pixel_node_t {
+    Pixel pixel;
+    struct pixel_node_t * next;
+} PixelNode;
+
 /********************************
  *
  *  Function definitions
@@ -112,5 +117,7 @@ ByteBuffer *infer_header(char *filename);
 
 // Inverse operation of infer_header
 void write_header_to_bytebuffer(BMPHeader *header, ByteBuffer *byte_buffer);
+
+PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body);
 
 #endif

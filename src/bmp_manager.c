@@ -56,13 +56,23 @@ int is_compressed(BMPHeader *header)
 }
 
 /**
+ *  get_bmp_row_size
+ *
+ *  Returns the size of the bmp row in bytes.
+ */
+int get_bmp_row_size(BMPHeader *header)
+{
+  return ((int)floor((header->bits_per_pixel * header->width + 31) / 32.0)) * 4;
+}
+
+/**
  *  get_bmp_body_size
  *
  *  Returns the size of the bmp body in bytes.
  */
 int get_bmp_body_size(BMPHeader *header)
 {
-  return ((int)floor((header->bits_per_pixel * header->width + 31) / 32.0)) * 4 * header->height;
+  return  get_bmp_row_size(header) * header->height;
 }
 
 ByteBuffer *infer_body(char *filename, BMPHeader *header)
@@ -112,4 +122,39 @@ ByteBuffer *infer_header(char *filename)
 
   fclose(fd);
   return byte_buffer;
+}
+
+/**
+ *  get_as_reserved_pixel_list
+ *
+ *  Returns a reversed simple list of pixels, ignoring the padding.
+ */
+PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
+{
+  PixelNode * first = malloc(sizeof(PixelNode));
+  PixelNode * curr = first;
+  int row_size = get_bmp_row_size(header);
+
+  for (int i = header->height - 1; i >= 0; i--)
+  {
+    for (int j = 0; j < header->width; j++)
+    {
+      int curr_pos = i * row_size + j * PIXEL_SIZE;
+      u_int32_t pixel_bytes = 0;
+
+      memcpy(&pixel_bytes, body->start + curr_pos, 3);
+      curr->pixel.red = (pixel_bytes >> 16) & 0xFF;
+      curr->pixel.green = (pixel_bytes >> 8) & 0xFF;
+      curr->pixel.blue = pixel_bytes & 0xFF;
+
+      if (i != 0 || j != header->width - 1)
+      {
+        curr->next = malloc(sizeof(PixelNode));
+      }
+      curr = curr->next;
+    }
+
+  }
+
+  return first;
 }
