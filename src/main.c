@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
         printf("Image data> Size: %dx%d pixels. Bits per pixel: %d. Uses compression: %s.\n", header->width, header->height, header->bits_per_pixel, is_compressed(header) ? "yes" : "no");
         printf("Body data> Length: %d\n", carrier_body->length);
         printf("Header data> Length: %d\n", carrier_header->length);
+        printf("Total size: %d\n", carrier_header->length + carrier_body->length);
     }
 
     //TODO: Move this
