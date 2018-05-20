@@ -76,6 +76,9 @@ int main(int argc, char *argv[])
     free(carrier_header);
     free(carrier_body->start);
     free(carrier_body);
+    free(input_file->file->start);
+    free(input_file->file);
+    free(input_file);
 
     while (list != NULL)
     {

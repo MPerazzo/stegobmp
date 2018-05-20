@@ -94,7 +94,10 @@ ByteBuffer *infer_body(char *filename, BMPHeader *header)
   }
 
   fseek(fd, header->offset, SEEK_SET);
-  fread(byte_buffer->start, byte_buffer->length, BYTE, fd);
+  if (fread(byte_buffer->start, byte_buffer->length, BYTE, fd) != BYTE)
+  {
+    return NULL;
+  }
 
   return byte_buffer;
 }
@@ -111,14 +114,20 @@ ByteBuffer *infer_header(char *filename)
 
   fseek(fd, BODY_START_HEADER_OFFSET, SEEK_SET);
   u_int32_t offset;
-  fread(&offset, BODY_START_HEADER_SIZE, BYTE, fd);
+  if (fread(&offset, BODY_START_HEADER_SIZE, BYTE, fd) != BYTE)
+  {
+    return NULL;
+  }
 
   byte_buffer->length = offset;
   byte_buffer->start = malloc(byte_buffer->length);
 
   // Go to the beginning of the file
   fseek(fd, 0, SEEK_SET);
-  fread(byte_buffer->start, 1, byte_buffer->length, fd);
+  if (fread(byte_buffer->start, 1, byte_buffer->length, fd) != (size_t)byte_buffer->length)
+  {
+    return NULL;
+  }
 
   fclose(fd);
   return byte_buffer;
@@ -137,7 +146,7 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
 
   for (int i = header->height - 1; i >= 0; i--)
   {
-    for (int j = 0; j < header->width; j++)
+    for (unsigned int j = 0; j < header->width; j++)
     {
       int curr_pos = i * row_size + j * PIXEL_SIZE;
       u_int32_t pixel_bytes = 0;
@@ -168,4 +177,6 @@ u_int64_t carrier_max_storage(BMPHeader *header, Steg steg_algorithm){
   if (steg_algorithm == LSB4){
     return header->width*header->height*PIXEL_SIZE*4;
   }
+
+  return 0;
 }

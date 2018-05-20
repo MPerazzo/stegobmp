@@ -27,7 +27,10 @@ InputFile *load_file(char* filename)
     byte_buffer->start = malloc(byte_buffer->length);
 
     fseek(fd, 0, SEEK_SET);
-    fread(byte_buffer->start, 1, byte_buffer->length, fd);
+    if (fread(byte_buffer->start, 1, byte_buffer->length, fd) != (size_t)byte_buffer->length)
+    {
+        return NULL;
+    }
     fclose(fd);
 
     input_file->file = byte_buffer;
