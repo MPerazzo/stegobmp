@@ -25,14 +25,13 @@ Options * parse_options(int argc, char *argv[])
     Options * parameters = malloc(sizeof(Options));
 
     // TODO: Use calloc in previous statement
-    parameters->input_file_name = NULL;
+    parameters->carrier_file_name = NULL;
 
     int c;
     static int mode_flag;
 
     while (1)
     {
-
         static struct option long_options[] =
             {
                 {"extract", no_argument, &mode_flag, 1},
@@ -86,18 +85,21 @@ Options * parse_options(int argc, char *argv[])
     if (parameters->input_file_name == NULL)
     {
         fprintf(stderr, "You must specify an input file.\n");
+        free(parameters);
         exit(1);
     }
 
     if (parameters->carrier_file_name == NULL)
     {
         fprintf(stderr, "You must specify a carrier file.\n");
+        free(parameters);
         exit(1);
     }
 
     if (parameters->output_file_name == NULL)
     {
         fprintf(stderr, "You must specify an output file.\n");
+        free(parameters);
         exit(1);
     }
 
