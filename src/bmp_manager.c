@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 BMPHeader *infer_header(char *filename)
 {
@@ -49,12 +50,22 @@ int is_compressed(BMPHeader *header)
   return header->compression != 0;
 }
 
+/**
+ *  get_bmp_body_size
+ *
+ *  Returns the size of the bmp body in bytes.
+ */
+int get_bmp_body_size(BMPHeader *header)
+{
+  return ((int)floor((header->bits_per_pixel * header->width + 31) / 32.0)) * 4 * header->height;
+}
+
 ByteBuffer *infer_body(char *filename, BMPHeader *header)
 {
   FILE *fd;
   ByteBuffer *byte_buffer = calloc(sizeof(ByteBuffer), 1);
 
-  byte_buffer->length = header->width * header->height * PIXEL_SIZE;
+  byte_buffer->length = get_bmp_body_size(header);
   byte_buffer->start = malloc(byte_buffer->length);
 
   if (byte_buffer->start == NULL)
