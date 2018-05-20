@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    u_int8_t extension_length = strlen(input_file->extension);
+    u_int8_t extension_length = strlen(input_file->extension) + 1;
     u_int64_t max_storage = carrier_max_storage(header, LSB1);
     u_int64_t total_data = (4 + input_file->size + extension_length)*8;
 
