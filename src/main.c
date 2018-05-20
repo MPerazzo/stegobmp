@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    PixelNode * list = infer_reversed_pixel_list(header, carrier_body);
+
     // Debug
     if (DEBUG)
     {
@@ -44,6 +46,10 @@ int main(int argc, char *argv[])
         printf("Body data> Length: %d\n", carrier_body->length);
         printf("Header data> Length: %d\n", carrier_header->length);
         printf("Total size: %d\n", carrier_header->length + carrier_body->length);
+
+        printf("%d, %d, %d\n",list->pixel.red, list->pixel.green, list->pixel.blue);
+        list = list->next->next->next->next->next->next->next->next->next->next->next->next;
+        printf("%d, %d, %d\n",list->pixel.red, list->pixel.green, list->pixel.blue);
     }
 
     //TODO: Move this
@@ -53,6 +59,13 @@ int main(int argc, char *argv[])
     free(carrier_header);
     free(carrier_body->start);
     free(carrier_body);
+
+    while (list != NULL)
+    {
+        PixelNode * next = list->next;
+        free(list);
+        list = next;
+    }
 
     return 0;
 }
