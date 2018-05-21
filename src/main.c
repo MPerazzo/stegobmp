@@ -39,6 +39,23 @@ int main(int argc, char *argv[])
 
     PixelNode * list = infer_reversed_pixel_list(header, carrier_body);
 
+    InputFile *input_file = load_file(options->input_file_name);
+
+    if (input_file == NULL){
+        fprintf(stderr, "Error trying to read input file.\n");
+        return 1;
+    }
+
+    u_int8_t extension_length = strlen(input_file->extension) + 1;
+    u_int64_t max_storage = carrier_max_storage(header, LSB1);
+    u_int64_t total_data = (4 + input_file->size + extension_length)*8;
+
+    if (total_data > max_storage){
+        fprintf(stderr, "BMP carrier is not big enough to save input file.");
+        fprintf(stderr, "Max Capacity: %d bytes\n", (int) (max_storage/8.0));
+        return 1;
+    }
+
     // Debug
     if (DEBUG)
     {
@@ -50,6 +67,7 @@ int main(int argc, char *argv[])
         printf("%d, %d, %d\n",list->pixel.red, list->pixel.green, list->pixel.blue);
         list = list->next->next->next->next->next->next->next->next->next->next->next->next;
         printf("%d, %d, %d\n",list->pixel.red, list->pixel.green, list->pixel.blue);
+        printf("Input file> Size: %d Extension: %s\n", input_file->size, input_file->extension);
     }
 
     //TODO: Move this
@@ -59,6 +77,9 @@ int main(int argc, char *argv[])
     free(carrier_header);
     free(carrier_body->start);
     free(carrier_body);
+    free(input_file->file->start);
+    free(input_file->file);
+    free(input_file);
 
     while (list != NULL)
     {
