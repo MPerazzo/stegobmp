@@ -55,6 +55,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    overwrite_pixel_list(list, input_file, LSB1);
+
+    if (save_output_file(list, options->output_file_name, carrier_header) == NULL)
+    {
+        fprintf(stderr, "Could not write output BMP file.\n");
+        return 1;
+    }
+
     // Debug
     if (DEBUG)
     {

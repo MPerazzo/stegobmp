@@ -140,4 +140,8 @@ InputFile *load_file(char *filename);
 // Number of bits that the carrier can store
 u_int64_t carrier_max_storage(BMPHeader *header, Steg steg_algorithm);
 
+void overwrite_pixel_list(PixelNode *list, InputFile *input_file, Steg steg_algorithm);
+
+void *save_output_file(PixelNode *list, char *filename, ByteBuffer *carrier_header);
+
 #endif
