@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
     u_int64_t total_data = (4 + input_file->size + extension_length)*8;
 
     if (total_data > max_storage){
-        fprintf(stderr, "BMP carrier is not big enough to save input file.\n");
+        fprintf(stderr, "BMP carrier is not big enough to save input file.");
+        fprintf(stderr, "Max Capacity: %d bytes\n", (int) (max_storage/8.0));
         return 1;
     }
 

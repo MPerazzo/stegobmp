@@ -102,11 +102,11 @@ typedef struct input_file_t
     char *extension;
 } InputFile;
 
-typedef enum steg_t{
+typedef enum steg_algorithm_t{
     LSB1,
     LSB4,
     LSBE
-} Steg;
+} StegAlgorithm;
 
 /********************************
  *
@@ -138,6 +138,6 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body);
 InputFile *load_file(char *filename);
 
 // Number of bits that the carrier can store
-u_int64_t carrier_max_storage(BMPHeader *header, Steg steg_algorithm);
+u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm);
 
 #endif
