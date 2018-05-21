@@ -97,8 +97,9 @@ typedef struct pixel_node_t {
 
 typedef struct input_file_t
 {
-    ByteBuffer *file;
-    u_int32_t size;
+    ByteBuffer file;
+    ByteBuffer ciphered_file
+
     char *extension;
 } InputFile;
 
