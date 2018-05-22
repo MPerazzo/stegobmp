@@ -98,7 +98,7 @@ typedef struct pixel_node_t {
 typedef struct input_file_t
 {
     ByteBuffer file;
-    ByteBuffer ciphered_file
+    ByteBuffer ciphered_file;
 
     char *extension;
 } InputFile;
@@ -108,6 +108,10 @@ typedef enum steg_algorithm_t{
     LSB4,
     LSBE
 } StegAlgorithm;
+
+typedef enum encryption_algorithm_t {
+    ECHO
+} EncryptionAlgorithm;
 
 /********************************
  *
@@ -140,5 +144,8 @@ InputFile *load_file(char *filename);
 
 // Number of bits that the carrier can store
 u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm);
+
+// Generates ciphered file for a given encryption algorithm
+InputFile *apply_encryption(InputFile *input_file, EncryptionAlgorithm encryption);
 
 #endif
