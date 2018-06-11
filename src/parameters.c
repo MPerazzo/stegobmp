@@ -1,7 +1,10 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "api.h"
+
+#define NOT_FOUND ((unsigned int)-1)
 
 /**
  * Prints the help
@@ -20,31 +23,73 @@ void print_help()
     printf("path to the carrier BMP file.\n");
 }
 
+StegAlgorithm steg_algorithm(char * steg_algorithm){
+    char * steg_algorithms[] = {"LSB1", "LSB4", "LSBE"};
+    int size = sizeof(steg_algorithms)/sizeof(char*);
+
+    for (int i = 0; i < size; i++){
+        if (strcmp(steg_algorithm, steg_algorithms[i]) == 0){
+            return i;
+        }
+    }
+
+    return NOT_FOUND;
+}
+
+EncryptionAlgorithm check_encryption_algorithm(char * encryption_algorithm){
+    char * encryption_algorithms[] = {"aes128", "aes192", "aes256", "des"};
+    int size = sizeof(encryption_algorithms)/sizeof(char*);
+
+    for (int i = 0; i < size; i++){
+        if (strcmp(encryption_algorithm, encryption_algorithms[i]) == 0){
+            return i;
+        }
+    }
+
+    return NOT_FOUND;
+}
+
+EncryptionMode check_encryption_mode(char * encryption_mode){
+    char * encryption_modes[] = {"ecb", "cfb", "ofb", "cbc"};
+    int size = sizeof(encryption_modes)/sizeof(char*);
+
+    for (int i = 0; i < size; i++){
+        if (strcmp(encryption_mode, encryption_modes[i]) == 0){
+            return i;
+        }
+    }
+
+    return NOT_FOUND;
+}
+
 Options * parse_options(int argc, char *argv[])
 {
-    Options * parameters = malloc(sizeof(Options));
-
-    // TODO: Use calloc in previous statement
-    parameters->carrier_file_name = NULL;
+    Options * parameters = calloc(1, sizeof(Options));
+    char * encryption_algorithm = "aes128";
+    char * encryption_mode = "cbc";
 
     int c;
-    static int mode_flag;
+    static int mode_flag = -1;
 
     while (1)
     {
         static struct option long_options[] =
             {
-                {"extract", no_argument, &mode_flag, 1},
-                {"embed", no_argument, &mode_flag, 0},
+                {"extract", no_argument, &mode_flag, EXTRACT},
+                {"embed", no_argument, &mode_flag, EMBED},
                 {"in", required_argument, 0, 'i'},
                 {"port", required_argument, 0, 'p'},
                 {"out", required_argument, 0, 'o'},
                 {"help", no_argument, 0, 'h'},
+                {"steg", required_argument, 0, 's'},
+                {"alg", required_argument, 0, 'a'},
+                {"mode", required_argument, 0, 'm'},
+                {"pass", required_argument, 0, 'k'},
                 {0, 0, 0, 0}};
 
         int option_index = 0;
 
-        c = getopt_long_only(argc, argv, "hi:o:p:", long_options, &option_index);
+        c = getopt_long_only(argc, argv, "hi:o:p:s:a:m:k:", long_options, &option_index);
 
         /* End of the options */
         if (c == -1)
@@ -75,6 +120,23 @@ Options * parse_options(int argc, char *argv[])
             case 'p':
                 parameters->carrier_file_name = optarg;
                 break;
+            case 's':
+                parameters->steg_algorithm = steg_algorithm(optarg);
+
+                if (parameters->steg_algorithm == NOT_FOUND){
+                    free(parameters);
+                    exit(1);
+                }
+                break;
+            case 'a':
+                encryption_algorithm = optarg;
+                break;
+            case 'm':
+                encryption_mode = optarg;
+                break;
+            case 'k':
+                parameters->password = optarg;
+                break;
             case '?':
                 break;
             default:
@@ -103,13 +165,31 @@ Options * parse_options(int argc, char *argv[])
         exit(1);
     }
 
-    if (mode_flag)
+    parameters->mode = mode_flag;
+
+    if (!(parameters->mode == EMBED || parameters->mode == EXTRACT))
     {
-        parameters->mode = EXTRACT;
+        fprintf(stderr, "You must specify a valid execution mode.\n");
+        free(parameters);
+        exit(1);
     }
-    else
+
+    parameters->encryption_algorithm = check_encryption_algorithm(encryption_algorithm);
+
+    if (parameters->encryption_algorithm == NOT_FOUND)
     {
-        parameters->mode = EMBED;
+        fprintf(stderr, "Invalid encryption algorithm.\n");
+        free(parameters);
+        exit(1);
+    }
+
+    parameters->encryption_mode = check_encryption_mode(encryption_mode);
+
+    if (parameters->encryption_mode == NOT_FOUND)
+    {
+        fprintf(stderr, "Invalid encryption mode.\n");
+        free(parameters);
+        exit(1);
     }
 
     return parameters;
