@@ -6,7 +6,7 @@ InputFile *load_file(char* filename)
 {
 
     InputFile *input_file = malloc(sizeof(InputFile));
-    
+
     char * extension = strrchr(filename, '.');
     input_file->extension = extension;
 
@@ -20,20 +20,15 @@ InputFile *load_file(char* filename)
     fseek(fd, 0, SEEK_END);
     u_int32_t size = ftell(fd);
 
-    input_file->size = size;
-
-    ByteBuffer *byte_buffer = malloc(sizeof(ByteBuffer));
-    byte_buffer->length = size;
-    byte_buffer->start = malloc(byte_buffer->length);
+    input_file->file.length = size;
+    input_file->file.start = malloc(input_file->file.length);
 
     fseek(fd, 0, SEEK_SET);
-    if (fread(byte_buffer->start, 1, byte_buffer->length, fd) != (size_t)byte_buffer->length)
+    if (fread(input_file->file.start, 1, input_file->file.length, fd) != (size_t)input_file->file.length)
     {
         return NULL;
     }
     fclose(fd);
 
-    input_file->file = byte_buffer;
-
-    return input_file;    
+    return input_file;
 }
