@@ -47,17 +47,22 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    u_int8_t extension_length = strlen(input_file->extension) + 1;
-    u_int64_t max_storage = carrier_max_storage(header, LSB1);
+    u_int8_t extension_length = 1;
+    if (input_file->extension != NULL)
+    {
+        extension_length += strlen(input_file->extension);
+    }
+
+    u_int64_t max_storage = carrier_max_storage(header, options->steg_algorithm);
     u_int64_t total_data = (4 + input_file->file.length + extension_length) * 8;
 
     if (total_data > max_storage){
-        fprintf(stderr, "BMP carrier is not big enough to save input file.");
+        fprintf(stderr, "BMP carrier is not big enough to save input file. ");
         fprintf(stderr, "Max Capacity: %d bytes\n", (int) (max_storage/8.0));
         return 1;
     }
 
-    InputFile * encrypted_file = apply_encryption(input_file, ECHO);
+    InputFile * encrypted_file = apply_encryption(input_file, options->encryption_algorithm);
 
     // Debug
     if (DEBUG)

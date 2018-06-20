@@ -52,6 +52,23 @@ typedef enum mode_t
     EXTRACT
 } Mode;
 
+typedef enum steg_algorithm_t{
+    LSB1,
+    LSB4,
+    LSBE
+} StegAlgorithm;
+
+typedef enum encryption_algorithm_t {
+    ECHO,
+} EncryptionAlgorithm;
+
+typedef enum encryption_mode_t {
+    ECB,
+    CFB,
+    OFB,
+    CBC
+} EncryptionMode;
+
 // Stores all the parameters of the current execution
 typedef struct options_t
 {
@@ -59,6 +76,10 @@ typedef struct options_t
     char *input_file_name;
     char *carrier_file_name;
     char *output_file_name;
+    StegAlgorithm steg_algorithm;
+    EncryptionAlgorithm encryption_algorithm;
+    EncryptionMode encryption_mode;
+    char *password;
 } Options;
 
 // Stores all the relevant BMP header information
@@ -102,16 +123,6 @@ typedef struct input_file_t
 
     char *extension;
 } InputFile;
-
-typedef enum steg_algorithm_t{
-    LSB1,
-    LSB4,
-    LSBE
-} StegAlgorithm;
-
-typedef enum encryption_algorithm_t {
-    ECHO
-} EncryptionAlgorithm;
 
 /********************************
  *
