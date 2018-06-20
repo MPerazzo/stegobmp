@@ -52,7 +52,7 @@ typedef enum mode_t
     EXTRACT
 } Mode;
 
-typedef enum steg_algorithm_t{
+typedef enum steg_algorithm_t {
     LSB1,
     LSB4,
     LSBE
@@ -60,6 +60,10 @@ typedef enum steg_algorithm_t{
 
 typedef enum encryption_algorithm_t {
     ECHO,
+    AES128,
+    AES192,
+    AES256,
+    DES
 } EncryptionAlgorithm;
 
 typedef enum encryption_mode_t {
@@ -108,7 +112,7 @@ typedef struct pixel_t
 typedef struct byte_buffer_t
 {
     u_int8_t *start;
-    int length;
+    u_int32_t length;
 } ByteBuffer;
 
 typedef struct pixel_node_t {
@@ -157,6 +161,9 @@ InputFile *load_file(char *filename);
 u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm);
 
 // Generates ciphered file for a given encryption algorithm
-InputFile *apply_encryption(InputFile *input_file, EncryptionAlgorithm encryption);
+ByteBuffer *apply_encryption(InputFile *input_file, EncryptionAlgorithm encryption);
+
+// Ofuscates the message into the carrier
+PixelNode *steg_apply(ByteBuffer *msg, PixelNode *carrier, StegAlgorithm algorithm);
 
 #endif
