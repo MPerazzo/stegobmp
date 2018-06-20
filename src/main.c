@@ -62,7 +62,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    InputFile * encrypted_file = apply_encryption(input_file, options->encryption_algorithm);
+    ByteBuffer * encrypted_message = apply_encryption(input_file, ECHO);// options->encryption_algorithm);
+
+    // TODO: If encryption algorithm is not ECHO => append total encryption size at the begining (using 4 bytes).
+
+    PixelNode * file_with_message = apply_steg(message, list, options->steg_algorithm);
+
+
+
 
     // Debug
     if (DEBUG)
