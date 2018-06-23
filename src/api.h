@@ -172,4 +172,7 @@ PixelNode *steg_apply(ByteBuffer *msg, PixelNode *carrier, StegAlgorithm algorit
 // Create BMP body from pixel list
 ByteBuffer * create_body(BMPHeader *carrier_header, PixelNode *file_with_message);
 
+// Creates a carrier file with a hidden message
+void create_output_carrier_file(char *output_file_name, ByteBuffer* carrier_header, ByteBuffer* new_body);
+
 #endif

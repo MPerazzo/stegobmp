@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
     ByteBuffer * new_body = create_body(header, file_with_message);
 
-    ByteBuffer * output_file = create_output_file(carrier_header, new_body);
+    create_output_carrier_file(options->output_file_name, carrier_header, new_body);
 
     // Debug
     if (DEBUG)
