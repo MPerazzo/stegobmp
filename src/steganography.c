@@ -60,6 +60,16 @@ PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)
 
 ByteBuffer *LSB1_retrieve(PixelNode *carrier)
 {
+  /*ByteBuffer *buffer = calloc(BYTE, sizeof(ByteBuffer));
+  PixelNode * curr = carrier;
+  u_int8_t component[] = {curr->pixel.blue, curr->pixel.green, curr->pixel.red};
+  u_int32_t size = 0;
+
+  for (int i = 35; i >= 0; i--){
+
+    u_int8_t bit = curr.pixel[0] & 1; // apago todo menos el menos significativo
+
+  }*/
   printf("TODO: Implement :)\n");
   return NULL;
 }

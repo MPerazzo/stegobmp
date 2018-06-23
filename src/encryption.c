@@ -29,11 +29,20 @@ ByteBuffer *echo_encryption(InputFile *input_file)
   return buffer;
 }
 
-InputFile *echo_decryption(InputFile *input_file)
+InputFile *echo_decryption(ByteBuffer *encrypted_file)
 {
-  input_file->file.length = input_file->ciphered_file.length;
-  input_file->file.start = calloc(BYTE, input_file->file.length);
-  memcpy(input_file->file.start, input_file->ciphered_file.start, input_file->file.length);
+
+  InputFile *input_file = malloc(sizeof(InputFile));
+
+  u_int32_t file_size;
+  memcpy(encrypted_file->start, &file_size, 4);
+
+  input_file->file.length = __bswap_32(file_size);
+  memcpy(input_file->file.start, encrypted_file->start + 4, input_file->file.length);
+
+  u_int32_t extension_length = encrypted_file->length - input_file->file.length - 4;
+
+  memcpy(input_file->extension, encrypted_file->start + encrypted_file->length - extension_length, extension_length);
   return input_file;
 }
 
@@ -43,8 +52,8 @@ ByteBuffer *apply_encryption(InputFile *input_file, EncryptionAlgorithm encrypti
   return (*fun_ptr_arr[encryption])(input_file);
 }
 
-InputFile *apply_decryption(InputFile *input_file, EncryptionAlgorithm encryption)
+InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionAlgorithm encryption)
 {
-  static InputFile *(*dcr_fun_ptr_arr[])(InputFile *) = {echo_decryption};
-  return (*dcr_fun_ptr_arr[encryption])(input_file);
+  static InputFile *(*dcr_fun_ptr_arr[])(ByteBuffer *) = {echo_decryption};
+  return (*dcr_fun_ptr_arr[encryption])(encrypted_file);
 }

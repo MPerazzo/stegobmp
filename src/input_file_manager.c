@@ -46,3 +46,18 @@ void create_output_carrier_file(char *output_file_name, ByteBuffer *carrier_head
 
     fclose(f);
 }
+
+void create_output_message_file(char *output_file_name, InputFile * message_file)
+{
+    char * complete_name = strcat(output_file_name, message_file->extension);
+    FILE *f = fopen(complete_name, "w");
+    if (f == NULL)
+    {
+        printf("Error while opening output file!\n");
+        exit(1);
+    }
+
+    fwrite(message_file->file.start, BYTE, message_file->file.length, f);
+
+    fclose(f);
+}
