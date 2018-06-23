@@ -1,6 +1,7 @@
 #include "api.h"
 #include <stdlib.h>
 #include <string.h>
+#include <byteswap.h>
 
 /**
 **  Each encryption function must return a ByteBuffer using the
@@ -17,8 +18,11 @@ ByteBuffer *echo_encryption(InputFile *input_file)
   buffer->length = 4 + input_file->file.length + extension_size + 1;
   buffer->start = calloc(BYTE, buffer->length);
 
+  // Save file size in big endian
+  u_int32_t file_size = __bswap_32(input_file->file.length);
+
   // Convert input file into a ByteBuffer using its respective offsets
-  memcpy(buffer->start, &(input_file->file.length), 4);
+  memcpy(buffer->start, &file_size, 4);
   memcpy(buffer->start + 4, input_file->file.start, input_file->file.length);
   memcpy(buffer->start + 4 + input_file->file.length, input_file->extension, extension_size + 1); // Copy extension & \0
 

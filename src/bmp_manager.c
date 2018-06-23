@@ -201,7 +201,7 @@ ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
   {
     for (u_int32_t j = 0; j < header->width; j++)
     {
-      u_int32_t pixel_offset = row_length_bytes * i + j;
+      u_int32_t pixel_offset = row_length_bytes * i + j * PIXEL_SIZE;
       memcpy(buffer->start + pixel_offset, &curr->pixel.blue, BYTE);
       memcpy(buffer->start + pixel_offset + BYTE, &curr->pixel.green, BYTE);
       memcpy(buffer->start + pixel_offset + 2 * BYTE, &curr->pixel.red, BYTE);
