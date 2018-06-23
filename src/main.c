@@ -62,7 +62,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    InputFile * encrypted_file = apply_encryption(input_file, options->encryption_algorithm);
+    ByteBuffer * encrypted_message = apply_encryption(input_file, ECHO);// options->encryption_algorithm);
+
+    // TODO: If encryption algorithm is not ECHO => append total encryption size at the begining (using 4 bytes).
+
+    PixelNode * file_with_message = steg_apply(encrypted_message, list, options->steg_algorithm);
+
+    ByteBuffer * new_body = create_body(header, file_with_message);
+
+    create_output_carrier_file(options->output_file_name, carrier_header, new_body);
 
     // Debug
     if (DEBUG)
@@ -76,7 +84,7 @@ int main(int argc, char *argv[])
         list = list->next->next->next->next->next->next->next->next->next->next->next->next;
         printf("%d, %d, %d\n",list->pixel.red, list->pixel.green, list->pixel.blue);
         printf("Input file> Size: %d Extension: %s\n", input_file->file.length, input_file->extension);
-        printf("Encrypted file> Size %d\n", encrypted_file->ciphered_file.length);
+        printf("Encrypted file> Size %d\n", encrypted_message->length);
     }
 
 

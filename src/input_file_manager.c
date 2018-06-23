@@ -32,3 +32,17 @@ InputFile *load_file(char* filename)
 
     return input_file;
 }
+
+void create_output_carrier_file(char *output_file_name, ByteBuffer *carrier_header, ByteBuffer *body) {
+    FILE *f = fopen(output_file_name, "w");
+    if (f == NULL)
+    {
+        printf("Error while opening output file!\n");
+        exit(1);
+    }
+
+    fwrite(carrier_header->start, BYTE, carrier_header->length, f);
+    fwrite(body->start, BYTE, body->length, f);
+
+    fclose(f);
+}

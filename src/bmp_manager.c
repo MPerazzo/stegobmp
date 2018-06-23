@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+int get_bmp_row_size(BMPHeader *header);
+
 BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
 {
   BMPHeader *header = malloc(sizeof(BMPHeader));
@@ -31,6 +33,8 @@ BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
   header->bits_per_pixel = bits_per_pixel;
   header->compression = compression;
   header->offset = offset;
+
+  header->_padding_bytes = get_bmp_row_size(header) - header->width * PIXEL_SIZE;
 
   return header;
 }
@@ -181,4 +185,32 @@ u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm)
 
   /* TODO: Add LSBE */
   return 0;
+}
+
+ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
+{
+  ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
+
+  buffer->length = get_bmp_body_size(header);
+  buffer->start = calloc(BYTE, buffer->length);
+  u_int32_t row_length_bytes = get_bmp_row_size(header);
+
+  PixelNode * curr = file_with_message;
+
+  for (int i = (int)header->height - 1; i >= 0; i--)
+  {
+    for (u_int32_t j = 0; j < header->width; j++)
+    {
+      u_int32_t pixel_offset = row_length_bytes * i + j * PIXEL_SIZE;
+      memcpy(buffer->start + pixel_offset, &curr->pixel.blue, BYTE);
+      memcpy(buffer->start + pixel_offset + BYTE, &curr->pixel.green, BYTE);
+      memcpy(buffer->start + pixel_offset + 2 * BYTE, &curr->pixel.red, BYTE);
+      curr = curr->next;
+    }
+
+    int zero = 0x0;
+    memcpy(buffer->start + row_length_bytes * (i + 1) - header->_padding_bytes, &zero, header->_padding_bytes);
+  }
+
+  return buffer;
 }
