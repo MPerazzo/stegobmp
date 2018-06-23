@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+int get_bmp_row_size(BMPHeader *header);
+
 BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
 {
   BMPHeader *header = malloc(sizeof(BMPHeader));
@@ -195,7 +197,7 @@ ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
 
   PixelNode * curr = file_with_message;
 
-  for (u_int32_t i = header->height - 1; i >= 0; i--)
+  for (int i = (int)header->height - 1; i >= 0; i--)
   {
     for (u_int32_t j = 0; j < header->width; j++)
     {
@@ -205,7 +207,9 @@ ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
       memcpy(buffer->start + pixel_offset + 2 * BYTE, &curr->pixel.red, BYTE);
       curr = curr->next;
     }
-    memcpy(buffer->start + row_length_bytes * (i + 1) - header->_padding_bytes, 0x0, header->_padding_bytes);
+
+    int zero = 0x0;
+    memcpy(buffer->start + row_length_bytes * (i + 1) - header->_padding_bytes, &zero, header->_padding_bytes);
   }
 
   return buffer;

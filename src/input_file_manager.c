@@ -41,8 +41,8 @@ void create_output_carrier_file(char *output_file_name, ByteBuffer *carrier_head
         exit(1);
     }
 
-    fwrite(carrier_header->start, BYTE, carrier_header->lenght, f);
-    fwrite(body->start, BYTE, body->lenght, f);
+    fwrite(carrier_header->start, BYTE, carrier_header->length, f);
+    fwrite(body->start, BYTE, body->length, f);
 
     fclose(f);
 }
