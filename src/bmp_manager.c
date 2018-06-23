@@ -32,7 +32,7 @@ BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
   header->compression = compression;
   header->offset = offset;
 
-  header->_padding_bytes = get_bmp_row_size(header) - header->width;
+  header->_padding_bytes = get_bmp_row_size(header) - header->width * PIXEL_SIZE;
 
   return header;
 }
@@ -189,20 +189,23 @@ ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
 {
   ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
 
-  buffer->length = get_bmp_row_size(header);
+  buffer->length = get_bmp_body_size(header);
   buffer->start = calloc(BYTE, buffer->length);
+  u_int32_t row_length_bytes = get_bmp_row_size(header);
 
   PixelNode * curr = file_with_message;
-  u_int32_t pixel_per_row = header->width;
 
-  for (u_int32_t i = header->height-1; i >= 0; i--)
+  for (u_int32_t i = header->height - 1; i >= 0; i--)
   {
     for (u_int32_t j = 0; j < header->width; j++)
     {
-
+      u_int32_t pixel_offset = row_length_bytes * i + j;
+      memcpy(buffer->start + pixel_offset, &curr->pixel.blue, BYTE);
+      memcpy(buffer->start + pixel_offset + BYTE, &curr->pixel.green, BYTE);
+      memcpy(buffer->start + pixel_offset + 2 * BYTE, &curr->pixel.red, BYTE);
+      curr = curr->next;
     }
-
-    //add padding
+    memcpy(buffer->start + row_length_bytes * (i + 1) - header->_padding_bytes, 0x0, header->_padding_bytes);
   }
 
   return buffer;
