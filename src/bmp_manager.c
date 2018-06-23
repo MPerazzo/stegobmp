@@ -32,6 +32,8 @@ BMPHeader *parse_header_from_bytebuffer(ByteBuffer *byte_buffer)
   header->compression = compression;
   header->offset = offset;
 
+  header->_padding_bytes = get_bmp_row_size(header) - header->width;
+
   return header;
 }
 
@@ -181,4 +183,27 @@ u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm)
 
   /* TODO: Add LSBE */
   return 0;
+}
+
+ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
+{
+  ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
+
+  buffer->length = get_bmp_row_size(header);
+  buffer->start = calloc(BYTE, buffer->length);
+
+  PixelNode * curr = file_with_message;
+  u_int32_t pixel_per_row = header->width;
+
+  for (u_int32_t i = header->height-1; i >= 0; i--)
+  {
+    for (u_int32_t j = 0; j < header->width; j++)
+    {
+
+    }
+
+    //add padding
+  }
+
+  return buffer;
 }

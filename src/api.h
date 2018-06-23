@@ -100,6 +100,9 @@ typedef struct header_t
 
     // The location of the start of the image information relative to the start of the file
     u_int32_t offset;
+
+    int _padding_bytes;
+
 } BMPHeader;
 
 typedef struct pixel_t
@@ -165,5 +168,8 @@ ByteBuffer *apply_encryption(InputFile *input_file, EncryptionAlgorithm encrypti
 
 // Ofuscates the message into the carrier
 PixelNode *steg_apply(ByteBuffer *msg, PixelNode *carrier, StegAlgorithm algorithm);
+
+// Create BMP body from pixel list
+ByteBuffer * create_body(BMPHeader *carrier_header, PixelNode *file_with_message);
 
 #endif

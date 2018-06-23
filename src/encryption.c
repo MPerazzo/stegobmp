@@ -10,16 +10,16 @@
 ByteBuffer *echo_encryption(InputFile *input_file)
 {
 
-  ByteBuffer * buffer = calloc(BYTE, sizeof(* ByteBuffer));
+  ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
 
   int extension_size = strlen(input_file->extension);
   // 4 bytes for the size + file data + extension + 1 extra byte for \0
-  buffer->length = 4 + input_file->file.lenght + extension_size + 1;
+  buffer->length = 4 + input_file->file.length + extension_size + 1;
   buffer->start = calloc(BYTE, buffer->length);
 
   // Convert input file into a ByteBuffer using its respective offsets
   memcpy(buffer->start, &(input_file->file.length), 4);
-  memcpy(buffer->start + 4, input_file->file, input_file->file.length);
+  memcpy(buffer->start + 4, input_file->file.start, input_file->file.length);
   memcpy(buffer->start + 4 + input_file->file.length, input_file->extension, extension_size + 1); // Copy extension & \0
 
   return buffer;
