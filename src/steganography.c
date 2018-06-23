@@ -26,7 +26,7 @@ PixelNode *LSB1_apply(ByteBuffer *msg, PixelNode *carrier)
         component[pixel_index] = (component[pixel_index] & 0xFE) | bit;
         pixel_index++;
 
-      if (pixel_index == 3)
+      if (pixel_index == PIXEL_SIZE)
       {
         // Save new data
         pixel_node->pixel.blue = component[0];
@@ -48,8 +48,41 @@ PixelNode *LSB1_apply(ByteBuffer *msg, PixelNode *carrier)
 
 PixelNode *LSB4_apply(ByteBuffer *msg, PixelNode *carrier)
 {
-  printf("TODO: Implement :)\n");
-  return NULL;
+  int pixel_index = 0;
+  PixelNode *pixel_node = carrier;
+  u_int8_t component[] = {pixel_node->pixel.blue, pixel_node->pixel.green, pixel_node->pixel.red};
+
+  for (u_int32_t msg_offset = 0; msg_offset < msg->length; msg_offset++)
+  {
+    u_int8_t byte;
+    memcpy(&byte, msg->start + msg_offset, BYTE);
+    for (int j = 1; j >= 0; j--)
+    {
+        // Get 4 bits from msg
+        u_int8_t four_bits = (byte >> (j*4)) & 0x0F; // 0000xxxx;
+
+        // Hide 4 bits in LSB4 mode
+        component[pixel_index] = (component[pixel_index] & 0xF0) | four_bits;
+        pixel_index++;
+
+      if (pixel_index == PIXEL_SIZE)
+      {
+        // Save new data
+        pixel_node->pixel.blue = component[0];
+        pixel_node->pixel.green = component[1];
+        pixel_node->pixel.red = component[2];
+
+        // Prepare next pixel
+        pixel_node = pixel_node->next; // Next pixel
+        pixel_index = 0;
+        component[0] = pixel_node->pixel.blue;
+        component[1] = pixel_node->pixel.green;
+        component[2] = pixel_node->pixel.red;
+      }
+    }
+  }
+
+  return carrier;
 }
 
 PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)

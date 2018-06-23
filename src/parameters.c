@@ -65,8 +65,10 @@ EncryptionMode check_encryption_mode(char * encryption_mode){
 Options * parse_options(int argc, char *argv[])
 {
     Options * parameters = calloc(1, sizeof(Options));
+    // Default values
     char * encryption_algorithm = "aes128";
     char * encryption_mode = "cbc";
+    parameters->steg_algorithm = LSB1;
 
     int c;
     static int mode_flag = -1;
