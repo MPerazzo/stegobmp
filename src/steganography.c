@@ -60,18 +60,131 @@ PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)
 
 ByteBuffer *LSB1_retrieve(PixelNode *carrier)
 {
-  /*ByteBuffer *buffer = calloc(BYTE, sizeof(ByteBuffer));
-  PixelNode * curr = carrier;
+
+  // 4 bytes del tamaño
+  // Data de longitud dada por los 4 bytes
+  // extension que termina en \0
+
+  ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
+
+  u_int32_t size;
+  PixelNode * curr = carrier:
+
+  // Retrieve the first 32 bits containing the size
+  int curr_bits_retrieved = 0;
+  int curr_index = 0;
+
   u_int8_t component[] = {curr->pixel.blue, curr->pixel.green, curr->pixel.red};
-  u_int32_t size = 0;
+  while (curr_bits_retrieved < 32)
+    size <<= 1;
+    size = size | (component[curr_index] & 0b1);
+    curr_bits_retrieved++;
+    curr_index++;
 
-  for (int i = 35; i >= 0; i--){
+    if (curr_index == PIXEL_SIZE){
+      curr_index = 0;
+      curr = curr->next;
+      component[0] = curr->pixel.blue;
+      component[1] = curr->pixel.green;
+      component[2] = curr->pixel.red;
+    }
+  }
 
-    u_int8_t bit = curr.pixel[0] & 1; // apago todo menos el menos significativo
+  buffer->length = size;
+  buffer->start = calloc(BYTE, buffer->length);
 
-  }*/
-  printf("TODO: Implement :)\n");
-  return NULL;
+  //There's an extra bit in the current pixel without reading that we will manually inject
+  u_int8_t extra_bit = curr->pixel.red & 0b1;
+  curr = curr->next;
+
+  curr_index = 0;
+  curr_bits_retrieved = 1;
+  component[0] = curr->pixel.blue;
+  component[1] = curr->pixel.green;
+  component[2] = curr->pixel.red;
+
+  u_int8_t * current = buffer->start;
+  // Inject exta bit
+  *current = extra_bit;
+  while (curr_bits_retrieved < size * 8) {
+
+    (*current) <<= 1:
+    *current = *current | (component[curr_index] & 0b1);
+
+    curr_bits_retrieved++;
+    curr_index++;
+
+    if (curr_index == PIXEL_SIZE){
+      curr_index = 0;
+      curr = curr->next;
+      component[0] = curr->pixel.blue;
+      component[1] = curr->pixel.green;
+      component[2] = curr->pixel.red;
+    }
+
+    if (curr_bits_retrieved % 8 == 0) {
+      current += BYTE;
+    }
+  }
+
+  // TODO: DO ONLY IF NO ENCRYPTION IS NEEDED
+
+  char extension[100];
+
+  switch (curr_index)
+  {
+    case 0:
+      curr_bits_retrieved = 0;
+      break;
+    case 1:
+      extension[0] = ((curr->pixel.green & 0b1) << 1) | (curr->pixel.red & 0b1);
+      curr = curr->next;
+      curr_bits_retrieved = 2;
+      break;
+    case 2:
+      extension[0] = curr->pixel.red & 0b1;
+      curr = curr->next;
+      curr_bits_retrieved = 1;
+      break;
+  }
+
+  // The magic
+  curr_index = 0;
+  char stop_found = 0;
+  int i = 0;
+  component[0] = curr->pixel.blue;
+  component[1] = curr->pixel.green;
+  component[2] = curr->pixel.red;
+
+  while (!stop_found){
+
+    extension[i] <<= 1;
+    extension[i] = extension[i] | (component[curr_index] & 0b1);
+
+    curr_bits_retrieved++;
+    curr_index++;
+
+    //falta la magia
+    if (curr_index == PIXEL_SIZE){
+      curr_index = 0;
+      curr = curr->next;
+      component[0] = curr->pixel.blue;
+      component[1] = curr->pixel.green;
+      component[2] = curr->pixel.red;
+    }
+
+    if (curr_bits_retrieved % 8 == 0)
+    {
+      if (extension[i] == '\0')
+      {
+        // Hurray \o/
+        stop_found = 1;
+      }
+      i++;
+    }
+  }
+
+  return buffer;
 }
 
 ByteBuffer *LSB4_retrieve(PixelNode *carrier)
