@@ -32,16 +32,18 @@ ByteBuffer *echo_encryption(InputFile *input_file)
 InputFile *echo_decryption(ByteBuffer *encrypted_file)
 {
 
-  InputFile *input_file = malloc(sizeof(InputFile));
+  InputFile *input_file = calloc(BYTE, sizeof(InputFile));
 
   u_int32_t file_size;
-  memcpy(encrypted_file->start, &file_size, 4);
+  memcpy(&file_size, encrypted_file->start, 4);
 
-  input_file->file.length = __bswap_32(file_size);
+  input_file->file.length = file_size;
+  input_file->file.start = calloc(BYTE, input_file->file.length);
   memcpy(input_file->file.start, encrypted_file->start + 4, input_file->file.length);
 
   u_int32_t extension_length = encrypted_file->length - input_file->file.length - 4;
 
+  input_file->extension = calloc(BYTE, extension_length);
   memcpy(input_file->extension, encrypted_file->start + encrypted_file->length - extension_length, extension_length);
   return input_file;
 }

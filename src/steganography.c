@@ -1,5 +1,7 @@
 #include "api.h"
 #include <string.h>
+#include <stdlib.h>
+#include <byteswap.h>
 
 /*
 **  We assume that if any of these functions is called
@@ -67,8 +69,8 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
 
   ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
 
-  u_int32_t size;
-  PixelNode * curr = carrier:
+  u_int32_t size = 0;
+  PixelNode * curr = carrier;
 
   // Retrieve the first 32 bits containing the size
   int curr_bits_retrieved = 0;
@@ -76,12 +78,14 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
 
   u_int8_t component[] = {curr->pixel.blue, curr->pixel.green, curr->pixel.red};
   while (curr_bits_retrieved < 32)
+  {
     size <<= 1;
-    size = size | (component[curr_index] & 0b1);
+    size = size | (component[curr_index] & 0x1);
     curr_bits_retrieved++;
     curr_index++;
 
-    if (curr_index == PIXEL_SIZE){
+    if (curr_index == PIXEL_SIZE)
+    {
       curr_index = 0;
       curr = curr->next;
       component[0] = curr->pixel.blue;
@@ -90,11 +94,14 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
     }
   }
 
-  buffer->length = size;
+  printf("Size LSB1: %d\n", size);
+
+  buffer->length = size + 4;
   buffer->start = calloc(BYTE, buffer->length);
+  memcpy(buffer->start, &size, 4);
 
   //There's an extra bit in the current pixel without reading that we will manually inject
-  u_int8_t extra_bit = curr->pixel.red & 0b1;
+  u_int8_t extra_bit = curr->pixel.red & 0x1;
   curr = curr->next;
 
   curr_index = 0;
@@ -103,18 +110,20 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
   component[1] = curr->pixel.green;
   component[2] = curr->pixel.red;
 
-  u_int8_t * current = buffer->start;
+  u_int8_t * current = buffer->start + 4;
   // Inject exta bit
   *current = extra_bit;
-  while (curr_bits_retrieved < size * 8) {
+  while (curr_bits_retrieved < (int)size * 8)
+  {
 
-    (*current) <<= 1:
-    *current = *current | (component[curr_index] & 0b1);
+    (*current) <<= 1;
+    *current = *current | (component[curr_index] & 0x1);
 
     curr_bits_retrieved++;
     curr_index++;
 
-    if (curr_index == PIXEL_SIZE){
+    if (curr_index == PIXEL_SIZE)
+    {
       curr_index = 0;
       curr = curr->next;
       component[0] = curr->pixel.blue;
@@ -122,7 +131,8 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
       component[2] = curr->pixel.red;
     }
 
-    if (curr_bits_retrieved % 8 == 0) {
+    if (curr_bits_retrieved % 8 == 0)
+    {
       current += BYTE;
     }
   }
@@ -137,12 +147,12 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
       curr_bits_retrieved = 0;
       break;
     case 1:
-      extension[0] = ((curr->pixel.green & 0b1) << 1) | (curr->pixel.red & 0b1);
+      extension[0] = ((curr->pixel.green & 0x1) << 1) | (curr->pixel.red & 0x1);
       curr = curr->next;
       curr_bits_retrieved = 2;
       break;
     case 2:
-      extension[0] = curr->pixel.red & 0b1;
+      extension[0] = curr->pixel.red & 0x1;
       curr = curr->next;
       curr_bits_retrieved = 1;
       break;
@@ -156,16 +166,17 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
   component[1] = curr->pixel.green;
   component[2] = curr->pixel.red;
 
-  while (!stop_found){
+  while (!stop_found)
+  {
 
     extension[i] <<= 1;
-    extension[i] = extension[i] | (component[curr_index] & 0b1);
+    extension[i] = extension[i] | (component[curr_index] & 0x1);
 
     curr_bits_retrieved++;
     curr_index++;
 
-    //falta la magia
-    if (curr_index == PIXEL_SIZE){
+    if (curr_index == PIXEL_SIZE)
+    {
       curr_index = 0;
       curr = curr->next;
       component[0] = curr->pixel.blue;
@@ -183,6 +194,11 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
       i++;
     }
   }
+
+  int extension_length = strlen(extension) + 1;
+  buffer->start = realloc(buffer->start, buffer->length + extension_length);
+  memcpy(buffer->start + buffer->length, extension, extension_length);
+  buffer->length += extension_length;
 
   return buffer;
 }
