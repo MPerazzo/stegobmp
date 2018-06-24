@@ -94,8 +94,6 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
     }
   }
 
-  printf("Size LSB1: %d\n", size);
-
   buffer->length = size + 4;
   buffer->start = calloc(BYTE, buffer->length);
   memcpy(buffer->start, &size, 4);
