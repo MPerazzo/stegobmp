@@ -45,6 +45,18 @@ PixelNode *LSB1_apply(ByteBuffer *msg, PixelNode *carrier)
     }
   }
 
+  // Save the remaining data
+  switch (pixel_index)
+  {
+    case 1:
+      pixel_node->pixel.blue = component[0];
+      break;
+    case 2:
+      pixel_node->pixel.blue = component[0];
+      pixel_node->pixel.green = component[1];
+      break;
+  }
+
   return carrier;
 }
 
