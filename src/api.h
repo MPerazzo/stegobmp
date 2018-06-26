@@ -203,6 +203,6 @@ InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionFunction encry
 void create_output_message_file(char *output_file_name, InputFile * message_file);
 
 // Retrieves the data from the carrier
-ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm);
+ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm, int encrypted);
 
 #endif
