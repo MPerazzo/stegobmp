@@ -194,5 +194,15 @@ Options * parse_options(int argc, char *argv[])
         exit(1);
     }
 
+    if (parameters->password == NULL)
+    {
+        parameters->encryption_algorithm = ECHO;
+        parameters->encryption_function = ECHO_FUNCTION;
+    }
+    else
+    {
+        parameters->encryption_function = parameters->encryption_algorithm*4 + parameters->encryption_mode;
+    }
+
     return parameters;
 }

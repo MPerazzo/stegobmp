@@ -2,13 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <byteswap.h>
+#include <openssl/evp.h>
+
+#define SUCCESS 1
+#define FAILURE !SUCCESS
 
 /**
 **  Each encryption function must return a ByteBuffer using the
 **  following structure: encryptedData(file data size (4 bytes)|| file data || extension (ending in \0))
 */
 
-ByteBuffer *echo_encryption(InputFile *input_file)
+ByteBuffer *echo_encryption(InputFile *input_file, EncryptionFunction function, char *password)
 {
 
   ByteBuffer * buffer = calloc(BYTE, sizeof(ByteBuffer));
@@ -29,7 +33,7 @@ ByteBuffer *echo_encryption(InputFile *input_file)
   return buffer;
 }
 
-InputFile *echo_decryption(ByteBuffer *encrypted_file)
+InputFile *echo_decryption(ByteBuffer *encrypted_file, EncryptionFunction function, char *password)
 {
 
   InputFile *input_file = calloc(BYTE, sizeof(InputFile));
@@ -48,14 +52,99 @@ InputFile *echo_decryption(ByteBuffer *encrypted_file)
   return input_file;
 }
 
-ByteBuffer *apply_encryption(InputFile *input_file, EncryptionAlgorithm encryption)
+/* For debug:
+* Stores the output in a file in base 64
+*/
+int saveEncryptedData(unsigned char *out, int len, unsigned char *file_name)
 {
-  static ByteBuffer *(*fun_ptr_arr[])(InputFile *) = {echo_encryption};
-  return (*fun_ptr_arr[encryption])(input_file);
+    BIO *b64;
+    BIO *bio;
+    b64 = BIO_new(BIO_f_base64());
+    bio = BIO_new(BIO_s_file());
+    if(bio == NULL)
+        return FAILURE;
+    if(!BIO_write_filename(bio, file_name))
+        return FAILURE;
+    bio = BIO_push(b64, bio);
+    BIO_write(bio, out, len);
+    BIO_flush(bio);
+    BIO_free_all(bio);
+    return SUCCESS;
 }
 
-InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionAlgorithm encryption)
+/*
+* 1) Put in buffer Size + Data + Extension
+* 2) Encrypt buffer
+* 3) Append size of encryption at beggining of data
+*/
+ByteBuffer *generic_encryption(InputFile *input_file, EncryptionFunction function, char *password)
 {
-  static InputFile *(*dcr_fun_ptr_arr[])(ByteBuffer *) = {echo_decryption};
-  return (*dcr_fun_ptr_arr[encryption])(encrypted_file);
+
+  ByteBuffer * buffer = echo_encryption(input_file, function, password);
+
+  const EVP_CIPHER * (func_ptr[]) = {EVP_aes_128_ecb(), EVP_aes_128_cfb8(), EVP_aes_128_ofb(), EVP_aes_128_cbc(),
+    EVP_aes_192_ecb(), EVP_aes_192_cfb8(), EVP_aes_192_ofb(), EVP_aes_192_cbc(),
+    EVP_aes_256_ecb(), EVP_aes_256_cfb8(), EVP_aes_256_ofb(), EVP_aes_256_cbc(),
+    EVP_des_ecb(), EVP_des_cfb8(), EVP_des_ofb(), EVP_des_cbc()};
+
+  // Encrypt
+  uint8_t  * out = calloc(BYTE, buffer->length + 32); // Add extra 256 bits for padding
+  unsigned char k[EVP_MAX_KEY_LENGTH];
+  unsigned char iv[EVP_MAX_IV_LENGTH];
+  const unsigned char *salt = NULL;
+  const EVP_MD *dgst = EVP_sha256();
+
+  EVP_BytesToKey(func_ptr[function], dgst, salt, (const unsigned char*)password, strlen(password), 1, k, iv);
+  // Init context
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  // Set encryption parameters
+  EVP_EncryptInit_ex(ctx, func_ptr[function], NULL, k, iv);
+  // Encrypt initial bytes
+  int out_length;
+  EVP_EncryptUpdate(ctx, out, &out_length, buffer->start, buffer->length);
+  // Encrypt remaining block bytes + padding
+  int last_block_length;
+  EVP_EncryptFinal(ctx, out + out_length, &last_block_length);
+  // Clear context
+  EVP_CIPHER_CTX_free(ctx);
+
+  // Copy encrypted data to a new buffer and append new size at beggining
+  ByteBuffer *encrypted_buffer = calloc(BYTE, sizeof(ByteBuffer));
+  encrypted_buffer->length = 4 + out_length + last_block_length;
+  encrypted_buffer->start = calloc(BYTE, encrypted_buffer->length);
+
+  u_int32_t total_length = __bswap_32(encrypted_buffer->length);
+  memcpy(encrypted_buffer->start, &total_length, 4);
+  memcpy(encrypted_buffer->start + 4, out, encrypted_buffer->length - 4);
+
+  /*unsigned char* name = (unsigned char*)"encrypted";
+  if (saveEncryptedData(out, out_length + last_block_length, name) == FAILURE)
+  {
+    fprintf(stderr, "Could not save encrypted file");
+    exit(1);
+  }*/
+
+  free(buffer->start);
+  free(buffer);
+  free(out);
+
+  return encrypted_buffer;
+}
+
+ByteBuffer *apply_encryption(InputFile *input_file, EncryptionFunction encryption, char *password)
+{
+  if (encryption == ECHO_FUNCTION)
+  {
+    return echo_encryption(input_file, encryption, password);
+  }
+  else
+  {
+    return generic_encryption(input_file, encryption, password);
+  }
+}
+
+InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionFunction encryption, char *password)
+{
+  static InputFile *(*dcr_fun_ptr_arr[])(ByteBuffer *, EncryptionFunction, char *) = {echo_decryption};
+  return (*dcr_fun_ptr_arr[encryption])(encrypted_file, encryption, password);
 }
