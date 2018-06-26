@@ -175,4 +175,13 @@ ByteBuffer * create_body(BMPHeader *carrier_header, PixelNode *file_with_message
 // Creates a carrier file with a hidden message
 void create_output_carrier_file(char *output_file_name, ByteBuffer* carrier_header, ByteBuffer* new_body);
 
+// Generates file from cyphered data
+InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionAlgorithm encryption);
+
+// Creates the file with the discovered message
+void create_output_message_file(char *output_file_name, InputFile * message_file);
+
+// Retrieves the data from the carrier
+ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm);
+
 #endif

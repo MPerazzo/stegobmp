@@ -148,7 +148,7 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
   PixelNode * curr = first;
   int row_size = get_bmp_row_size(header);
 
-  for (int i = header->height - 1; i >= 0; i--)
+  for (int i = 0; i < (int)header->height; i++)
   {
     for (unsigned int j = 0; j < header->width; j++)
     {
@@ -160,7 +160,7 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
       curr->pixel.green = (pixel_bytes >> 8) & 0xFF;
       curr->pixel.blue = pixel_bytes & 0xFF;
 
-      if (i != 0 || j != header->width - 1)
+      if (i != (int)header->height - 1 || j != header->width - 1)
       {
         curr->next = malloc(sizeof(PixelNode));
       }
@@ -197,7 +197,7 @@ ByteBuffer * create_body(BMPHeader *header, PixelNode *file_with_message)
 
   PixelNode * curr = file_with_message;
 
-  for (int i = (int)header->height - 1; i >= 0; i--)
+  for (int i = 0; i < (int)header->height; i++)
   {
     for (u_int32_t j = 0; j < header->width; j++)
     {

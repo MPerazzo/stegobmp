@@ -146,13 +146,6 @@ Options * parse_options(int argc, char *argv[])
         }
     }
 
-    if (parameters->input_file_name == NULL)
-    {
-        fprintf(stderr, "You must specify an input file.\n");
-        free(parameters);
-        exit(1);
-    }
-
     if (parameters->carrier_file_name == NULL)
     {
         fprintf(stderr, "You must specify a carrier file.\n");
@@ -172,6 +165,13 @@ Options * parse_options(int argc, char *argv[])
     if (!(parameters->mode == EMBED || parameters->mode == EXTRACT))
     {
         fprintf(stderr, "You must specify a valid execution mode.\n");
+        free(parameters);
+        exit(1);
+    }
+
+    if (parameters->input_file_name == NULL && parameters->mode == EMBED)
+    {
+        fprintf(stderr, "You must specify an input file.\n");
         free(parameters);
         exit(1);
     }

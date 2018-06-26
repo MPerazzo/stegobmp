@@ -5,6 +5,9 @@
 
 #define DEBUG 1
 
+void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list);
+void extract(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list);
+
 int main(int argc, char *argv[])
 {
     Options *options = parse_options(argc, argv);
@@ -39,12 +42,26 @@ int main(int argc, char *argv[])
 
     PixelNode * list = infer_reversed_pixel_list(header, carrier_body);
 
+    if (options->mode == EMBED)
+    {
+        embed(options, header, carrier_header, carrier_body, list);
+    }
+    else
+    {
+        extract(options, header, carrier_header, carrier_body, list);
+    }
+
+    return 0;
+}
+
+void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list)
+{
     //TODO: This is throwing segmentation fault if there's no input name
     InputFile *input_file = load_file(options->input_file_name);
 
     if (input_file == NULL){
         fprintf(stderr, "Error trying to read input file.\n");
-        return 1;
+        return;
     }
 
     u_int8_t extension_length = 1;
@@ -59,7 +76,7 @@ int main(int argc, char *argv[])
     if (total_data > max_storage){
         fprintf(stderr, "BMP carrier is not big enough to save input file. ");
         fprintf(stderr, "Max Capacity: %d bytes\n", (int) (max_storage/8.0));
-        return 1;
+        return;
     }
 
     ByteBuffer * encrypted_message = apply_encryption(input_file, ECHO);// options->encryption_algorithm);
@@ -106,6 +123,15 @@ int main(int argc, char *argv[])
         free(list);
         list = next;
     }
+}
 
-    return 0;
+void extract(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list)
+{
+    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm);
+
+    InputFile * msg_file = apply_decryption(encrypted_msg, ECHO);
+
+    create_output_message_file(options->output_file_name, msg_file);
+
+    //TODO: Free mem
 }
