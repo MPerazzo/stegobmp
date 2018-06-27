@@ -70,7 +70,7 @@ void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, Byt
         extension_length += strlen(input_file->extension);
     }
 
-    u_int64_t max_storage = carrier_max_storage(header, options->steg_algorithm);
+    u_int64_t max_storage = carrier_max_storage(header, options->steg_algorithm, carrier_body);
     u_int64_t total_data = (4 + input_file->file.length + extension_length) * 8;
 
     if (total_data > max_storage){
