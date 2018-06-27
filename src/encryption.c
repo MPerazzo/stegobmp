@@ -23,7 +23,7 @@ ByteBuffer *echo_encryption(InputFile *input_file, EncryptionFunction function, 
   buffer->start = calloc(BYTE, buffer->length);
 
   // Save file size in big endian
-  u_int32_t file_size = __bswap_32(input_file->file.length);
+    u_int32_t file_size = __bswap_32(input_file->file.length);
 
   // Convert input file into a ByteBuffer using its respective offsets
   memcpy(buffer->start, &file_size, 4);
@@ -33,13 +33,13 @@ ByteBuffer *echo_encryption(InputFile *input_file, EncryptionFunction function, 
   return buffer;
 }
 
-InputFile *echo_decryption(ByteBuffer *encrypted_file, EncryptionFunction function, char *password)
+InputFile *echo_decryption(ByteBuffer *file, EncryptionFunction function, char *password)
 {
 
   InputFile *input_file = calloc(BYTE, sizeof(InputFile));
 
   u_int32_t file_size;
-  memcpy(&file_size, encrypted_file->start, 4);
+  memcpy(&file_size, file->start, 4);
 
   if (password == NULL)
   {
@@ -51,12 +51,12 @@ InputFile *echo_decryption(ByteBuffer *encrypted_file, EncryptionFunction functi
   }
 
   input_file->file.start = calloc(BYTE, input_file->file.length);
-  memcpy(input_file->file.start, encrypted_file->start + 4, input_file->file.length);
+  memcpy(input_file->file.start, file->start + 4, input_file->file.length);
 
-  u_int32_t extension_length = encrypted_file->length - input_file->file.length - 4;
+  u_int32_t extension_length = file->length - input_file->file.length - 4;
 
   input_file->extension = calloc(BYTE, extension_length);
-  memcpy(input_file->extension, encrypted_file->start + encrypted_file->length - extension_length, extension_length);
+  memcpy(input_file->extension, file->start + file->length - extension_length, extension_length);
   return input_file;
 }
 
@@ -121,7 +121,7 @@ ByteBuffer *generic_encryption(InputFile *input_file, EncryptionFunction functio
   encrypted_buffer->length = 4 + out_length + last_block_length;
   encrypted_buffer->start = calloc(BYTE, encrypted_buffer->length);
 
-  u_int32_t total_length = __bswap_32(encrypted_buffer->length);
+  u_int32_t total_length = __bswap_32(encrypted_buffer->length - 4);
   memcpy(encrypted_buffer->start, &total_length, 4);
   memcpy(encrypted_buffer->start + 4, out, encrypted_buffer->length - 4);
 
@@ -161,7 +161,7 @@ InputFile *generic_decryption(ByteBuffer *encrypted_buffer, EncryptionFunction f
   EVP_DecryptInit_ex(ctx, func_ptr[function], NULL, k, iv);
   // Decrypt initial bytes
   int out_length;
-  EVP_DecryptUpdate(ctx, buffer->start, &out_length, encrypted_buffer->start + 4, encrypted_buffer->length - 4);
+  EVP_DecryptUpdate(ctx, buffer->start, &out_length, encrypted_buffer->start + 4, buffer->length);
   // Decrypt remaining block bytes + padding
   int last_block_length;
   EVP_DecryptFinal_ex(ctx, buffer->start + out_length, &last_block_length);

@@ -64,22 +64,15 @@ void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, Byt
         return;
     }
 
-    u_int8_t extension_length = 1;
-    if (input_file->extension != NULL)
-    {
-        extension_length += strlen(input_file->extension);
-    }
+    ByteBuffer * encrypted_message = apply_encryption(input_file, options->encryption_function, options->password);
 
     u_int64_t max_storage = carrier_max_storage(header, options->steg_algorithm, carrier_body);
-    u_int64_t total_data = (4 + input_file->file.length + extension_length) * 8;
 
-    if (total_data > max_storage){
+    if (encrypted_message->length * 8 > max_storage){
         fprintf(stderr, "BMP carrier is not big enough to save input file. ");
         fprintf(stderr, "Max Capacity: %d bytes\n", (int) (max_storage/8.0));
         return;
     }
-
-    ByteBuffer * encrypted_message = apply_encryption(input_file, options->encryption_function, options->password);
 
     PixelNode * file_with_message = steg_apply(encrypted_message, list, options->steg_algorithm);
 

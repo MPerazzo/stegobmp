@@ -219,48 +219,6 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
   buffer->start = calloc(BYTE, buffer->length);
   memcpy(buffer->start, &size, 4);
 
-  if (encrypted)
-  {
-    //There's an extra bit in the current pixel without reading that we will manually inject
-    u_int8_t extra_bit = curr->pixel.red & 0x1;
-    curr = curr->next;
-
-    curr_index = 0;
-    curr_bits_retrieved = 1;
-    component[0] = curr->pixel.blue;
-    component[1] = curr->pixel.green;
-    component[2] = curr->pixel.red;
-
-    u_int8_t * current = buffer->start + 4;
-    // Inject exta bit
-    *current = extra_bit;
-    while (curr_bits_retrieved < (int)size * 8)
-    {
-
-      (*current) <<= 1;
-      *current = *current | (component[curr_index] & 0x1);
-
-      curr_bits_retrieved++;
-      curr_index++;
-
-      if (curr_index == PIXEL_SIZE)
-      {
-        curr_index = 0;
-        curr = curr->next;
-        component[0] = curr->pixel.blue;
-        component[1] = curr->pixel.green;
-        component[2] = curr->pixel.red;
-      }
-
-      if (curr_bits_retrieved % 8 == 0)
-      {
-        current += BYTE;
-      }
-    }
-
-    return buffer;
-  }
-
   //There's an extra bit in the current pixel without reading that we will manually inject
   u_int8_t extra_bit = curr->pixel.red & 0x1;
   curr = curr->next;
@@ -298,7 +256,10 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
     }
   }
 
-  // TODO: DO ONLY IF NO ENCRYPTION IS NEEDED
+  if (encrypted)
+  {
+    return buffer;
+  }
 
   char extension[100];
 
@@ -398,13 +359,8 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
   memcpy(buffer->start, &size, 4);
 
   //There's an extra bit in the current pixel without reading that we will manually inject
-  u_int8_t extra_bit = curr->pixel.red & 0x4;
+  u_int8_t extra_bit = curr->pixel.red & 0x0F;
   curr = curr->next;
-
-  if (encrypted)
-  {
-    return buffer;
-  }
 
   curr_index = 0;
   curr_bits_retrieved = 4;
@@ -439,7 +395,10 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
     }
   }
 
-  // TODO: DO ONLY IF NO ENCRYPTION IS NEEDED
+  if (encrypted)
+  {
+    return buffer;
+  }
 
   char extension[100];
 
@@ -449,12 +408,12 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
       curr_bits_retrieved = 0;
       break;
     case 1:
-      extension[0] = ((curr->pixel.green & 0xF) << 4) | (curr->pixel.red & 0x4);
+      extension[0] = ((curr->pixel.green & 0xF) << 4) | (curr->pixel.red & 0xF);
       curr = curr->next;
       curr_bits_retrieved = 8;
       break;
     case 2:
-      extension[0] = curr->pixel.red & 0x4;
+      extension[0] = curr->pixel.red & 0xF;
       curr = curr->next;
       curr_bits_retrieved = 4;
       break;
