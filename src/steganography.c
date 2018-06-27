@@ -127,7 +127,7 @@ PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)
         u_int8_t bit = (byte >> j) & 1; // 0000000x;
 
         // Move current pixel index to a pixel in which it's possible to write data
-        while (component[pixel_index] != 0xFE || component[pixel_index] != 0xFF ) {
+        while (component[pixel_index] != 0xFE && component[pixel_index] != 0xFF ) {
           pixel_index++;
           if (pixel_index == PIXEL_SIZE)
           {
