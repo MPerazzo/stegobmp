@@ -551,6 +551,7 @@ ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
         extra_bit <<= 1;
         extra_bit = curr->pixel.red & 0x1;
       }
+      curr = curr->next;
       break;
     case 2:
       // falta el red (si es que cumple)
@@ -559,6 +560,7 @@ ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
         extra_bit_length++;
         extra_bit = curr->pixel.red & 0x1;
       }
+      curr = curr->next;
       break;
   }
 
@@ -568,12 +570,8 @@ ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
 
   if (encrypted)
   {
-    //There's an extra bit in the current pixel without reading that we will manually inject
-    u_int8_t extra_bit = curr->pixel.red & 0x1;
-    curr = curr->next;
-
     curr_index = 0;
-    curr_bits_retrieved = 1;
+    curr_bits_retrieved = extra_bit_length;
     component[0] = curr->pixel.blue;
     component[1] = curr->pixel.green;
     component[2] = curr->pixel.red;
@@ -583,11 +581,13 @@ ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
     *current = extra_bit;
     while (curr_bits_retrieved < (int)size * 8)
     {
+      if (component[curr_index] == 0xFE | component[curr_index] == 0xFF)
+      {
+        (*current) <<= 1;
+        *current = *current | (component[curr_index] & 0x1);
 
-      (*current) <<= 1;
-      *current = *current | (component[curr_index] & 0x1);
-
-      curr_bits_retrieved++;
+        curr_bits_retrieved++;
+      }
       curr_index++;
 
       if (curr_index == PIXEL_SIZE)
@@ -610,7 +610,7 @@ ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
 
   //There's an extra bit in the current pixel without reading that we will manually inject
   // u_int8_t extra_bit = curr->pixel.red & 0x1;
-  curr = curr->next;
+  // curr = curr->next;
 
   curr_index = 0;
   curr_bits_retrieved = extra_bit_length;
