@@ -127,7 +127,7 @@ void extract(Options * options, BMPHeader *header, ByteBuffer *carrier_header, B
 {
     int encrypted = options->password != NULL;
 
-    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm, encrypted);
+    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm, encrypted, carrier_body);
 
     InputFile * msg_file = apply_decryption(encrypted_msg, options->encryption_function, options->password);
 
