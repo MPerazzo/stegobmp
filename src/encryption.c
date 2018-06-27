@@ -161,7 +161,7 @@ InputFile *generic_decryption(ByteBuffer *encrypted_buffer, EncryptionFunction f
   EVP_DecryptInit_ex(ctx, func_ptr[function], NULL, k, iv);
   // Decrypt initial bytes
   int out_length;
-  EVP_EncryptUpdate(ctx, buffer->start, &out_length, encrypted_buffer->start + 4, encrypted_buffer->length - 4);
+  EVP_DecryptUpdate(ctx, buffer->start, &out_length, encrypted_buffer->start + 4, encrypted_buffer->length - 4);
   // Decrypt remaining block bytes + padding
   int last_block_length;
   EVP_DecryptFinal_ex(ctx, buffer->start + out_length, &last_block_length);
