@@ -403,42 +403,8 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted)
 
   if (encrypted)
   {
-    curr_index = 0;
-    curr_bits_retrieved = 4;
-    component[0] = curr->pixel.blue;
-    component[1] = curr->pixel.green;
-    component[2] = curr->pixel.red;
-
-    u_int8_t * current = buffer->start + 4;
-    // Inject exta bit
-    *current = extra_bit;
-    while (curr_bits_retrieved < (int)size * 8)
-    {
-
-      (*current) <<= 4;
-      *current = *current | (component[curr_index] & 0xF);
-
-      curr_bits_retrieved += 4;
-      curr_index++;
-
-      if (curr_index == PIXEL_SIZE)
-      {
-        curr_index = 0;
-        curr = curr->next;
-        component[0] = curr->pixel.blue;
-        component[1] = curr->pixel.green;
-        component[2] = curr->pixel.red;
-      }
-
-      if (curr_bits_retrieved % 8 == 0)
-      {
-        current += BYTE;
-      }
-    }
-
     return buffer;
   }
-
 
   curr_index = 0;
   curr_bits_retrieved = 4;
