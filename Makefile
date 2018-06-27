@@ -1,5 +1,5 @@
 OUTPUT_FILE=stegobmp
-LIBRARIES= -lm
+LIBRARIES= -lm -lcrypto
 FLAGS= --std=c99 -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -D_POSIX_C_SOURCE=200112L -O1 #-fsanitize=address
 
 all:

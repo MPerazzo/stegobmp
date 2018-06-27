@@ -59,12 +59,32 @@ typedef enum steg_algorithm_t {
 } StegAlgorithm;
 
 typedef enum encryption_algorithm_t {
-    ECHO,
     AES128,
     AES192,
     AES256,
-    DES
+    DES,
+    ECHO
 } EncryptionAlgorithm;
+
+typedef enum encryption_function_t {
+    AES_128_ECB,
+    AES_128_CFB,
+    AES_128_OFB,
+    AES_128_CBC,
+    AES_192_ECB,
+    AES_192_CFB,
+    AES_192_OFB,
+    AES_192_CBC,
+    AES_256_ECB,
+    AES_256_CFB,
+    AES_256_OFB,
+    AES_256_CBC,
+    DES_ECB,
+    DES_CFB,
+    DES_OFB,
+    DES_CBC,
+    ECHO_FUNCTION
+} EncryptionFunction;
 
 typedef enum encryption_mode_t {
     ECB,
@@ -84,6 +104,7 @@ typedef struct options_t
     EncryptionAlgorithm encryption_algorithm;
     EncryptionMode encryption_mode;
     char *password;
+    EncryptionFunction encryption_function;
 } Options;
 
 // Stores all the relevant BMP header information
@@ -164,7 +185,7 @@ InputFile *load_file(char *filename);
 u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm);
 
 // Generates ciphered file for a given encryption algorithm
-ByteBuffer *apply_encryption(InputFile *input_file, EncryptionAlgorithm encryption);
+ByteBuffer *apply_encryption(InputFile *input_file, EncryptionFunction encryption, char *password);
 
 // Ofuscates the message into the carrier
 PixelNode *steg_apply(ByteBuffer *msg, PixelNode *carrier, StegAlgorithm algorithm);
@@ -176,12 +197,12 @@ ByteBuffer * create_body(BMPHeader *carrier_header, PixelNode *file_with_message
 void create_output_carrier_file(char *output_file_name, ByteBuffer* carrier_header, ByteBuffer* new_body);
 
 // Generates file from cyphered data
-InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionAlgorithm encryption);
+InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionFunction encryption, char *password);
 
 // Creates the file with the discovered message
 void create_output_message_file(char *output_file_name, InputFile * message_file);
 
 // Retrieves the data from the carrier
-ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm);
+ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm, int encrypted);
 
 #endif

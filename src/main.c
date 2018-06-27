@@ -79,9 +79,7 @@ void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, Byt
         return;
     }
 
-    ByteBuffer * encrypted_message = apply_encryption(input_file, ECHO);// options->encryption_algorithm);
-
-    // TODO: If encryption algorithm is not ECHO => append total encryption size at the begining (using 4 bytes).
+    ByteBuffer * encrypted_message = apply_encryption(input_file, options->encryption_function, options->password);
 
     PixelNode * file_with_message = steg_apply(encrypted_message, list, options->steg_algorithm);
 
@@ -127,9 +125,11 @@ void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, Byt
 
 void extract(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list)
 {
-    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm);
+    int encrypted = options->password != NULL;
 
-    InputFile * msg_file = apply_decryption(encrypted_msg, ECHO);
+    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm, encrypted);
+
+    InputFile * msg_file = apply_decryption(encrypted_msg, options->encryption_function, options->password);
 
     create_output_message_file(options->output_file_name, msg_file);
 
