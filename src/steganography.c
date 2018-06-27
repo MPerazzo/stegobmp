@@ -404,7 +404,7 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted)
   if (encrypted)
   {
     curr_index = 0;
-    curr_bits_retrieved = 1;
+    curr_bits_retrieved = 4;
     component[0] = curr->pixel.blue;
     component[1] = curr->pixel.green;
     component[2] = curr->pixel.red;
