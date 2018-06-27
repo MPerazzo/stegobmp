@@ -408,12 +408,12 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
       curr_bits_retrieved = 0;
       break;
     case 1:
-      extension[0] = ((curr->pixel.green & 0xF) << 4) | (curr->pixel.red & 0x4);
+      extension[0] = ((curr->pixel.green & 0xF) << 4) | (curr->pixel.red & 0xF);
       curr = curr->next;
       curr_bits_retrieved = 8;
       break;
     case 2:
-      extension[0] = curr->pixel.red & 0x4;
+      extension[0] = curr->pixel.red & 0xF;
       curr = curr->next;
       curr_bits_retrieved = 4;
       break;
