@@ -113,8 +113,72 @@ PixelNode *LSB4_apply(ByteBuffer *msg, PixelNode *carrier)
 
 PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)
 {
-  printf("TODO: Implement :)\n");
-  return NULL;
+  int pixel_index = 0;
+  PixelNode *pixel_node = carrier;
+  u_int8_t component[] = {pixel_node->pixel.blue, pixel_node->pixel.green, pixel_node->pixel.red};
+
+  for (u_int32_t msg_offset = 0; msg_offset < msg->length; msg_offset++)
+  {
+    u_int8_t byte;
+    memcpy(&byte, msg->start + msg_offset, 1);
+    for (int j = 7; j >= 0; j--)
+    {
+        // Get bit from msg
+        u_int8_t bit = (byte >> j) & 1; // 0000000x;
+
+        // Move current pixel index to a pixel in which it's possible to write data
+        while (component[pixel_index] != 0xFE || component[pixel_index] != 0xFF ) {
+          pixel_index++;
+          if (pixel_index == PIXEL_SIZE)
+          {
+            // Save new data
+            pixel_node->pixel.blue = component[0];
+            pixel_node->pixel.green = component[1];
+            pixel_node->pixel.red = component[2];
+
+            // Prepare next pixel
+            pixel_node = pixel_node->next; // Next pixel
+            pixel_index = 0;
+            component[0] = pixel_node->pixel.blue;
+            component[1] = pixel_node->pixel.green;
+            component[2] = pixel_node->pixel.red;
+          }
+        }
+
+        // Hide bit in LSBE mode
+        component[pixel_index] = (component[pixel_index] & 0xFE) | bit;
+        pixel_index++;
+
+      if (pixel_index == PIXEL_SIZE)
+      {
+        // Save new data
+        pixel_node->pixel.blue = component[0];
+        pixel_node->pixel.green = component[1];
+        pixel_node->pixel.red = component[2];
+
+        // Prepare next pixel
+        pixel_node = pixel_node->next; // Next pixel
+        pixel_index = 0;
+        component[0] = pixel_node->pixel.blue;
+        component[1] = pixel_node->pixel.green;
+        component[2] = pixel_node->pixel.red;
+      }
+    }
+  }
+
+  // Save the remaining data
+  switch (pixel_index)
+  {
+    case 1:
+      pixel_node->pixel.blue = component[0];
+      break;
+    case 2:
+      pixel_node->pixel.blue = component[0];
+      pixel_node->pixel.green = component[1];
+      break;
+  }
+
+  return carrier;
 }
 
 ByteBuffer *LSB1_retrieve(PixelNode *carrier, int encrypted)
