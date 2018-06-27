@@ -172,7 +172,7 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
   return first;
 }
 
-u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm, const ByteBuffer *carrier_body)
+u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm, ByteBuffer *carrier_body)
 {
 
   if (steg_algorithm == LSB1)
@@ -187,11 +187,11 @@ u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm, c
 
   if (steg_algorithm == LSBE)
   {
-    int size_count_in_bits = 0
+    int size_count_in_bits = 0;
     for (u_int32_t offset = 0; offset <= carrier_body->length; offset++)
     {
       u_int8_t * curr_byte = carrier_body->start + offset;
-      if (*curr_byte == 0xFE || *curr_byte == 0xFF)
+      if (*curr_byte == 0xFE || *curr_byte == 0xFF)
       {
         size_count_in_bits++;
       }
