@@ -182,7 +182,7 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body);
 InputFile *load_file(char *filename);
 
 // Number of bits that the carrier can store
-u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm);
+u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm, ByteBuffer *carrier_body);
 
 // Generates ciphered file for a given encryption algorithm
 ByteBuffer *apply_encryption(InputFile *input_file, EncryptionFunction encryption, char *password);
@@ -203,6 +203,6 @@ InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionFunction encry
 void create_output_message_file(char *output_file_name, InputFile * message_file);
 
 // Retrieves the data from the carrier
-ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm, int encrypted);
+ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm, int encrypted, ByteBuffer *carrier_buffer);
 
 #endif

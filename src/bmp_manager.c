@@ -172,18 +172,32 @@ PixelNode *infer_reversed_pixel_list(BMPHeader *header, ByteBuffer *body)
   return first;
 }
 
-u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm)
+u_int64_t carrier_max_storage(BMPHeader *header, StegAlgorithm steg_algorithm, ByteBuffer *carrier_body)
 {
 
-  if (steg_algorithm == LSB1){
-    return header->width*header->height*PIXEL_SIZE;
+  if (steg_algorithm == LSB1)
+  {
+    return header->width * header->height * PIXEL_SIZE;
   }
 
-  if (steg_algorithm == LSB4){
-    return header->width*header->height*PIXEL_SIZE*4;
+  if (steg_algorithm == LSB4)
+  {
+    return header->width * header->height * PIXEL_SIZE * 4;
   }
 
-  /* TODO: Add LSBE */
+  if (steg_algorithm == LSBE)
+  {
+    int size_count_in_bits = 0;
+    for (u_int32_t offset = 0; offset <= carrier_body->length; offset++)
+    {
+      u_int8_t * curr_byte = carrier_body->start + offset;
+      if (*curr_byte == 0xFE || *curr_byte == 0xFF)
+      {
+        size_count_in_bits++;
+      }
+    }
+    return size_count_in_bits;
+  }
   return 0;
 }
 
