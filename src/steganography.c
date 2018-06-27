@@ -105,7 +105,7 @@ PixelNode *LSBE_apply(ByteBuffer *msg, PixelNode *carrier)
   return NULL;
 }
 
-ByteBuffer *LSB1_retrieve(PixelNode *carrier)
+ByteBuffer *LSB1_retrieve(PixelNode *carrier, int encrypted)
 {
 
   // 4 bytes del tamaño
@@ -142,6 +142,48 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
   buffer->length = size + 4;
   buffer->start = calloc(BYTE, buffer->length);
   memcpy(buffer->start, &size, 4);
+
+  if (encrypted)
+  {
+    //There's an extra bit in the current pixel without reading that we will manually inject
+    u_int8_t extra_bit = curr->pixel.red & 0x1;
+    curr = curr->next;
+
+    curr_index = 0;
+    curr_bits_retrieved = 1;
+    component[0] = curr->pixel.blue;
+    component[1] = curr->pixel.green;
+    component[2] = curr->pixel.red;
+
+    u_int8_t * current = buffer->start + 4;
+    // Inject exta bit
+    *current = extra_bit;
+    while (curr_bits_retrieved < (int)size * 8)
+    {
+
+      (*current) <<= 1;
+      *current = *current | (component[curr_index] & 0x1);
+
+      curr_bits_retrieved++;
+      curr_index++;
+
+      if (curr_index == PIXEL_SIZE)
+      {
+        curr_index = 0;
+        curr = curr->next;
+        component[0] = curr->pixel.blue;
+        component[1] = curr->pixel.green;
+        component[2] = curr->pixel.red;
+      }
+
+      if (curr_bits_retrieved % 8 == 0)
+      {
+        current += BYTE;
+      }
+    }
+
+    return buffer;
+  }
 
   //There's an extra bit in the current pixel without reading that we will manually inject
   u_int8_t extra_bit = curr->pixel.red & 0x1;
@@ -246,13 +288,13 @@ ByteBuffer *LSB1_retrieve(PixelNode *carrier)
   return buffer;
 }
 
-ByteBuffer *LSB4_retrieve(PixelNode *carrier)
+ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted)
 {
   printf("TODO: Implement :)\n");
   return NULL;
 }
 
-ByteBuffer *LSBE_retrieve(PixelNode *carrier)
+ByteBuffer *LSBE_retrieve(PixelNode *carrier, int encrypted)
 {
   printf("TODO: Implement :)\n");
   return NULL;
@@ -265,8 +307,8 @@ PixelNode *steg_apply(ByteBuffer *msg, PixelNode *carrier, StegAlgorithm algorit
   return (*alg_appl_ptr_arr[algorithm])(msg, carrier);
 }
 
-ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm)
+ByteBuffer *steg_retrieve(PixelNode *carrier, StegAlgorithm algorithm, int encrypted)
 {
-  static ByteBuffer *(*alg_rtrv_ptr_arr[])(PixelNode *) = {LSB1_retrieve, LSB4_retrieve, LSBE_retrieve};
-  return (*alg_rtrv_ptr_arr[algorithm])(carrier);
+  static ByteBuffer *(*alg_rtrv_ptr_arr[])(PixelNode *, int) = {LSB1_retrieve, LSB4_retrieve, LSBE_retrieve};
+  return (*alg_rtrv_ptr_arr[algorithm])(carrier, encrypted);
 }

@@ -125,9 +125,11 @@ void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, Byt
 
 void extract(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list)
 {
-    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm);
+    int encrypted = options->password != NULL;
 
-    InputFile * msg_file = apply_decryption(encrypted_msg, ECHO_FUNCTION, options->password);
+    ByteBuffer * encrypted_msg = steg_retrieve(list, options->steg_algorithm, encrypted);
+
+    InputFile * msg_file = apply_decryption(encrypted_msg, options->encryption_function, options->password);
 
     create_output_message_file(options->output_file_name, msg_file);
 

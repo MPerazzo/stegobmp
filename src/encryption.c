@@ -41,7 +41,15 @@ InputFile *echo_decryption(ByteBuffer *encrypted_file, EncryptionFunction functi
   u_int32_t file_size;
   memcpy(&file_size, encrypted_file->start, 4);
 
-  input_file->file.length = file_size;
+  if (password == NULL)
+  {
+    input_file->file.length = file_size;
+  }
+  else
+  {
+    input_file->file.length = __bswap_32(file_size);
+  }
+
   input_file->file.start = calloc(BYTE, input_file->file.length);
   memcpy(input_file->file.start, encrypted_file->start + 4, input_file->file.length);
 
@@ -131,6 +139,43 @@ ByteBuffer *generic_encryption(InputFile *input_file, EncryptionFunction functio
   return encrypted_buffer;
 }
 
+InputFile *generic_decryption(ByteBuffer *encrypted_buffer, EncryptionFunction function, char *password)
+{
+  const EVP_CIPHER * (func_ptr[]) = {EVP_aes_128_ecb(), EVP_aes_128_cfb8(), EVP_aes_128_ofb(), EVP_aes_128_cbc(),
+    EVP_aes_192_ecb(), EVP_aes_192_cfb8(), EVP_aes_192_ofb(), EVP_aes_192_cbc(),
+    EVP_aes_256_ecb(), EVP_aes_256_cfb8(), EVP_aes_256_ofb(), EVP_aes_256_cbc(),
+    EVP_des_ecb(), EVP_des_cfb8(), EVP_des_ofb(), EVP_des_cbc()};
+
+  ByteBuffer * buffer = calloc(1, sizeof(ByteBuffer));
+  buffer->length = encrypted_buffer->length - 4;
+  buffer->start = calloc(BYTE, buffer->length);
+  unsigned char k[EVP_MAX_KEY_LENGTH];
+  unsigned char iv[EVP_MAX_IV_LENGTH];
+  const unsigned char *salt = NULL;
+  const EVP_MD *dgst = EVP_sha256();
+
+  EVP_BytesToKey(func_ptr[function], dgst, salt, (const unsigned char*)password, strlen(password), 1, k, iv);
+  // Init context
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  // Set decryption parameters
+  EVP_DecryptInit_ex(ctx, func_ptr[function], NULL, k, iv);
+  // Decrypt initial bytes
+  int out_length;
+  EVP_DecryptUpdate(ctx, buffer->start, &out_length, encrypted_buffer->start + 4, encrypted_buffer->length - 4);
+  // Decrypt remaining block bytes + padding
+  int last_block_length;
+  EVP_DecryptFinal_ex(ctx, buffer->start + out_length, &last_block_length);
+  // Clear context
+  EVP_CIPHER_CTX_free(ctx);
+
+  buffer->length = out_length + last_block_length;
+
+  free(encrypted_buffer->start);
+  free(encrypted_buffer);
+
+  return echo_decryption(buffer, ECHO_FUNCTION, password);
+}
+
 ByteBuffer *apply_encryption(InputFile *input_file, EncryptionFunction encryption, char *password)
 {
   if (encryption == ECHO_FUNCTION)
@@ -145,6 +190,12 @@ ByteBuffer *apply_encryption(InputFile *input_file, EncryptionFunction encryptio
 
 InputFile *apply_decryption(ByteBuffer *encrypted_file, EncryptionFunction encryption, char *password)
 {
-  static InputFile *(*dcr_fun_ptr_arr[])(ByteBuffer *, EncryptionFunction, char *) = {echo_decryption};
-  return (*dcr_fun_ptr_arr[encryption])(encrypted_file, encryption, password);
+  if (encryption == ECHO_FUNCTION)
+  {
+    return echo_decryption(encrypted_file, encryption, password);
+  }
+  else
+  {
+    return generic_decryption(encrypted_file, encryption, password);
+  }
 }
