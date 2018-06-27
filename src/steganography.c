@@ -401,6 +401,11 @@ ByteBuffer *LSB4_retrieve(PixelNode *carrier, int encrypted, ByteBuffer *body_bu
   u_int8_t extra_bit = curr->pixel.red & 0x4;
   curr = curr->next;
 
+  if (encrypted)
+  {
+    return buffer;
+  }
+
   curr_index = 0;
   curr_bits_retrieved = 4;
   component[0] = curr->pixel.blue;
