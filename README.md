@@ -23,4 +23,4 @@ make
  * **-a &lt;arg>**: Encryption/Decryption algorithm (aes128, aes192, aes256, des).
  * **-m &lt;arg>**: Encryption/Decryption mode (ecb, cfb, ofb, cbc).
  * **-pass &lt;arg>**: Password.
- * **-h, --help: Display help.
+ * **-h, --help**: Display help.
