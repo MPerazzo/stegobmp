@@ -21,6 +21,14 @@ void print_help()
     printf("path to the output file.\n");
     printf("%-30s", "\t-p bitmap-file");
     printf("path to the carrier BMP file.\n");
+    printf("%-30s", "\t-steg steg-alg");
+    printf("steganography algorithm.\n");
+    printf("%-30s", "\t-a alg");
+    printf("encryption algorithm.\n");
+    printf("%-30s", "\t-m mode");
+    printf("encryption mode.\n");
+    printf("%-30s", "\t-pass password");
+    printf("encryption password.\n");
 }
 
 StegAlgorithm steg_algorithm(char * steg_algorithm){
