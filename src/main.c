@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
 
 void embed(Options * options, BMPHeader *header, ByteBuffer *carrier_header, ByteBuffer *carrier_body, PixelNode *list)
 {
-    //TODO: This is throwing segmentation fault if there's no input name
     InputFile *input_file = load_file(options->input_file_name);
 
     if (input_file == NULL){
